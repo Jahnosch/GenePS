@@ -1,2 +1,4 @@
 # GenePS
-Gene positioning system
+#### Gene Positioning System
+
+program is in progress...

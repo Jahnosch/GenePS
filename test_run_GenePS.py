@@ -9,3 +9,4 @@ test_db = os.path.join(script_path, "c_elegans.PRJNA13758.WS254.genomic")
 
 print(test_db)
 print(script_path)
+

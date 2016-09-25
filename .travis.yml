@@ -3,11 +3,9 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
-  - "3.5-dev" # 3.5 development branch
-  - "nightly" # currently points to 3.6-dev
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
-  - "pypy"
+
 # command to install dependencies
 #install:
 install: "pip3 install -r requirements.txt"

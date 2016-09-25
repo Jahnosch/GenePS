@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 from operator import itemgetter
 from collections import defaultdict, namedtuple
-from run_command import *
+from run_command import * # try not to use * ... import only what you want to import
 
 
 def make_blast_db(genome, temp_dir):
     name = os.path.splitext(genome)[0].split("/")[-1]
     out_dir = os.path.join(temp_dir,name)
-    if os.path.exists(out_dir + ".nhr"):
+    if os.path.exists(out_dir + ".nhr"): # tell user it already exists
         return out_dir
     command = "makeblastdb -in " + genome + " -dbtype nucl -parse_seqids -out " + out_dir
     run_cmd(command=command, wait=True)
@@ -70,7 +70,7 @@ class HspListObject:
                 if single_region is None:
                     single_region = [last_idx]
                 single_region.append(idx)
-            else:
+            else: # you are testing for two things in the if ... are you sure the else captures what you want to capture?
                 if single_region is not None:
                     all_regions.append(single_region)
                     single_region = None

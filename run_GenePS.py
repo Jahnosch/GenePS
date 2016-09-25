@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
 from statistics import mean, stdev
-from exonerate_parser import *
-from find_regions import *
+from docopt import docopt, DocoptExit
+from exonerate_parser import * # try not to use * ... import only what you want to import
+from find_regions import * # try not to use * ... import only what you want to import
 from make_GenePS import get_phmm_score, write_to_tempfile
+
+"""
+usage: run_GenePS.py    -g <FILE> -m <FILE> [-o <PREFIX>]
+                        [-h|--help]
+
+    Options:
+        -h --help                           show this
+
+        General
+            -g, --genome <FILE>                 Target genome
+            -m, --make_file <FILE>              make file
+            -o, --out_prefix <STR>              Prefix
+"""
 
 
 class ExonerateError(Exception):
@@ -74,11 +88,11 @@ class ResultsObject:
         self.exonerate_out = defaultdict(list)
 
         # initialize automatically
-        self.process_make_output()
+        self.process_make_output() # do this outside of init
 
     def process_make_output(self):
         def mod_next(): return next(mg).strip().split(":")
-        with open(self.path) as mg:
+        with open(self.path) as mg: # mg?
             self.group_name = mg.readline().split(":")[1].strip()
             self.group_size = int(mg.readline().split(":")[1].strip())
             for line in mg:
@@ -106,16 +120,23 @@ class ResultsObject:
 
 
 if __name__ == "__main__":
-    make_file = sys.argv[1]
-    genome = sys.argv[2]
-    out_dir = get_out_folder(make_file)
+        __version__ = 0.1
+    args = docopt(__doc__)
+    try:
+        make_file = args['--make_file'] # better variable name?
+        genome = args['--genome'] # target_genome ?
+    except docopt.DocoptExit:
+        print __doc__.strip()
+
+    get_out_folder(make_file) # return gets not saved ?
+
     # make database
-    db_path = make_blast_db(genome, out_dir)
+    db_path = make_blast_db(genome, make_file)
     print("\ngenerating blast db")
 
     with tempdir() as tmp_dir:
         for subdir, dirs, files in os.walk(make_file):
-            for file in files:
+            for file in files: # you are overwriting "file" built-in, use tmp_file
                 # file = group of many cluster
                 if file.split(".")[-1] == "makeGenePS":
                     group_file = os.path.join(subdir, file)

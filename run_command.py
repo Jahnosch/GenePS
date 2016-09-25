@@ -6,6 +6,10 @@ import contextlib
 import os
 import tempfile as tmp
 
+'''
+COMMENTS
+- run_command.py does more than just run commands, give it a more general name
+'''
 
 def run_cmd(**kwargs):
     cmd = kwargs['command']

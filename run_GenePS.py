@@ -151,10 +151,10 @@ if __name__ == "__main__":
 
     with tempdir() as tmp_dir:
         for subdir, dirs, files in os.walk(gene_ps_results):
-            for file_path in files:
+            for file_path_str in files:
                 # file = group of many cluster
-                if file_path.split(".")[-1] == "makeGenePS":
-                    group_file = os.path.join(subdir, file_path)
+                if file_path_str.split(".")[-1] == "makeGenePS":
+                    group_file = os.path.join(subdir, file_path_str)
                     group_result = ResultsObject(group_file)
                     group_result.read_gene_ps_consensus_file()
                     print("\n# Analyzing {} - containing {} files\n"

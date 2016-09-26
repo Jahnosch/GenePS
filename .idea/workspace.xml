@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/make_GenePS.py" afterPath="$PROJECT_DIR$/make_GenePS.py" />
-    </list>
+    <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="" />
     <ignored path="GenePS.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

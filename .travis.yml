@@ -8,6 +8,6 @@ python:
 
 # command to install dependencies
 #install:
-'sudo: required'
+
 # command to run tests
 script: "python3 test_make_GenePS.py test"

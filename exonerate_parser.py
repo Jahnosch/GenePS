@@ -5,28 +5,29 @@ from collections import defaultdict
 from run_command import run_cmd
 
 
+aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': 'K',
+     'Ile': 'I', 'Pro': 'P', 'Thr': 'T', 'Phe': 'F', 'Asn': 'N',
+     'Gly': 'G', 'His': 'H', 'Leu': 'L', 'Arg': 'R', 'Trp': 'W', 'Ter':'*',
+     'Ala': 'A', 'Val':'V', 'Glu': 'E', 'Tyr': 'Y', 'Met': 'M','Xaa':'X'}
+
+
 def aacode_3to1(seq):
     '''Turn a three letter protein into a one letter protein.
 The 3 letter code can be upper, lower, or any mix of cases
 The seq input length should be a factor of 3 or else results
 in an error
 '''
-    d = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
-     'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N',
-     'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'TER':'*',
-     'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M','XAA':'X'}
 
-    if len(seq) %3 == 0:
-        upper_seq= seq.upper()
-        single_seq=''
-        for i in range(int(len(upper_seq)/3)):
-            single_seq += d[upper_seq[3*i:3*i+3]]
-        return single_seq
+    if len(seq) % 3 == 0:
+        single_seq = []
+        for i in range(0, len(seq), 3):
+            single_seq.append(aa3_to_1_coding_dict.get(seq[i:i+3]))
+        return "".join(single_seq)
     else:
         print("ERROR: Sequence was not a factor of 3 in length!")
 
 
-def keep_letters (string):
+def remove_non_letter_signs(string):
     '''removes all non-alphabetic letters from string'''
     regex = re.compile('[^a-zA-Z]')
     return regex.sub("", string)
@@ -54,9 +55,9 @@ class ExonerateObject:
     def exonerate_processor(self, exonerate_file):
         ''' protein against 1 or more genome regions (targets),
         file with aln and/or gff output '''
-        del_intron = lambda seq :seq.replace("TargetIntron","")                  # no lambda
-        prep_line = lambda line :line.strip("\n").split(": ")[1].strip(" ")
-        next_line = lambda :prep_line(next(ex))
+        del_intron = lambda seq: seq.replace("TargetIntron","")                  # no lambda
+        prep_line = lambda line: line.strip("\n").split(": ")[1].strip(" ")
+        next_line = lambda: prep_line(next(ex))
         next_block = lambda size: [next_line() for x in range(0,size)]
 
         read_flag = 0
@@ -74,10 +75,10 @@ class ExonerateObject:
                         read_flag = 2
                     elif read_flag == 2:
                         if not line.startswith("#"):
-                            self.query_prot[target][trange] += (del_intron(keep_letters(line)))
+                            self.query_prot[target][trange] += (del_intron(remove_non_letter_signs(line)))
                             next(ex)
-                            self.target_prot[target][trange] += (keep_letters(next(ex)))
-                            self.target_dna[target][trange] += (keep_letters(next(ex)))
+                            self.target_prot[target][trange] += (remove_non_letter_signs(next(ex)))
+                            self.target_dna[target][trange] += (remove_non_letter_signs(next(ex)))
                         elif "GFF" in line:
                             read_flag = 3
                         else:

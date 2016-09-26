@@ -2,10 +2,24 @@
 ###############
 # MAKE GenePS !
 ###############
+
+"""
+Usage: make_GenePS.py                         -i <DIR> -o <DIR>
+
+    Options:
+        -h, --help                            show this screen.
+
+        General
+        -i, --input <DIR>                     either single input file or directory with files or sub-folders
+        -o, --output <DIR>                    directory where to save the output file(s)
+
+"""
+
 import os
 import sys
 import tempfile as tmp
 from collections import defaultdict
+from docopt import docopt
 
 from run_command import run_cmd, tempdir, check_programs
 from compute_msa import generate_msa, MsaObject
@@ -159,9 +173,13 @@ class ScoreObject:
 
 
 if __name__ == "__main__":
+    __version__ = 0.1
+    args = docopt(__doc__)
+    infile = args['--input']
+    out_directory = args['--output']
+
     check_programs("hmmsearch", "hmmemit", "hmmbuild", "mafft", "trimal")
-    infile = sys.argv[1]
-    out_directory = sys.argv[2]
+
     out_dir = get_outdir(out_directory)
 
     # tmp_dir automatically cleaned up
@@ -177,7 +195,7 @@ if __name__ == "__main__":
         for folder, file_list in dir_tree.items():
             number_files = len(file_list)
             folder_name = folder.split("/")[-1]
-            print("[{}] starting with {} - containing {} files\n"
+            print("[{}] starting with {} -> containing {} files\n"
                   .format(str(counter), folder_name, str(number_files)))
 
             # single results file per group
@@ -197,13 +215,20 @@ if __name__ == "__main__":
                 msa_file = MsaObject(msa_list, file_name, tmp_dir)
                 msa_file.msa_to_fasta()
                 msa_file.trim_remove()
+                if msa_file.size[-1] < 4 or ((msa_file.size[0] - msa_file.size[-1]) / msa_file.size[0]) > 50:
+                    print("[!] {} : NO MSA computable - "
+                          "only {} taxa remained MSA after trimming".format(msa_file.name, msa_file.size))
+                    continue
                 msa_file.trim_length()
+                if msa_file.lengths[-1] < 20:
+                    print("[!] {} : NO MSA computable - "
+                          "MSA length too short after trimming".format(msa_file.name))
+                    continue
 
                 # pHMM consensus
                 cons_hmm = os.path.join(tmp_dir, file_name + ".chmm")
                 generate_hmm(cons_hmm, msa_file.path)
                 consensus_seq = get_consensus(cons_hmm)
-                print(consensus_seq)
 
                 # compute scores
                 left_taxa = msa_file.all_header()

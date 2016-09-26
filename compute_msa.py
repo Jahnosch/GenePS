@@ -25,7 +25,6 @@ def msa_operations(command):
 def generate_msa(fasta):
     command = "mafft " + fasta
     return msa_operations(command)
-    # vll einführen das es automatisch ein boject wird
 
 
 class MsaObject:
@@ -47,18 +46,11 @@ class MsaObject:
     def trim_remove(self):
         self.msa_list = msa_operations(self.cmd_trim_remove)
         self.size.append(len(self.msa_list)/2)
-        if self.size[-1] < 4 or \
-                        ((self.size[0] - self.size[-1]) / self.size[0]) > 50:
-            return print(self.name, " : NO MSA computable")
         self.msa_to_fasta()
 
     def trim_length(self):
         self.msa_list = msa_operations(self.cmd_trim_length)
         self.lengths.append(len(self.msa_list[1]))
-        if self.lengths[-1] < 20:
-            # print statement to a log file and on screen
-            # return a key word which jumps to the next cluster
-            return print(self.name, " : NO MSA computable")
         self.msa_to_fasta()
 
     def all_header(self):

@@ -9,9 +9,11 @@ def make_blast_db(genome, temp_dir):
     name = os.path.splitext(genome)[0].split("/")[-1]
     out_dir = os.path.join(temp_dir,name)
     if os.path.exists(out_dir + ".nhr"):
+        print("\n[!] BLAST db already exists:\n{}".format(os.path.join(temp_dir, name)))
         return out_dir
     command = "makeblastdb -in " + genome + " -dbtype nucl -parse_seqids -out " + out_dir
     run_cmd(command=command, wait=True)
+    print("\n[-] generating BLAST db\n")
     return out_dir
 
 

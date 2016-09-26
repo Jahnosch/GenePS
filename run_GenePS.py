@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
+
+'''
+Usage: run_GenePS.py                          -m <DIR> -g <FILE>
+
+    Options:
+        -h, --help                            show this screen.
+
+        General
+        -m, --GenePS_result_dir <DIR>         folder with consensus/score results from make_GenePS.py
+        -g, --genome <FILE>                   Target genome
+
+'''
+
 import os
 import sys
+from docopt import docopt
 import tempfile as tmp
 from collections import defaultdict
 from statistics import mean, stdev
@@ -19,6 +33,7 @@ class ScoreError(Exception):
     pass
 
 
+# same function as in makeGenePS ?
 def get_out_folder(makeGenePS_dir):
     if os.path.isfile(makeGenePS_dir):
         print(makeGenePS_dir, " is NOT a directory!")
@@ -30,7 +45,7 @@ def get_out_folder(makeGenePS_dir):
         return os.path.join(makeGenePS_dir, "Predictions")
 
 
-def check_score(list_scores, phmm_score):
+def judge_score(list_scores, phmm_score):
     average = mean(list_scores)
     conf_inter = (average - stdev(list_scores),
                   average + stdev(list_scores))
@@ -79,10 +94,11 @@ class ResultsObject:
         self.score_list = {}
         self.exonerate_out = defaultdict(list)
 
-        # initialize automatically
-        self.process_make_output()
-
-    def process_make_output(self):
+    def read_gene_ps_consensus_file(self):
+        """reads the results file.makeGenePS form the first "make_GenePS" script, containing: consensus seq and scores
+        for each cluster. There is one results file for each Group-folder the user in "make_GenePS specified as input.
+        :return: init the attributes (all clusters per group-folder in one instance)
+        """
         def mod_next(): return next(mg).strip().split(":")
         with open(self.path) as mg:
             self.group_name = mg.readline().split(":")[1].strip()
@@ -91,7 +107,7 @@ class ResultsObject:
                 if line.startswith(">name:"):
                     cluster = line.split(":")[1].strip()
                     self.phmm[cluster] = mod_next()[1].strip()
-                    scores = mod_next()[1].strip()
+                    scores = mod_next()[1].strip().strip("[|]")
                     cons_seq = mod_next()[0]
                     self.seq_length[cluster] = (len(cons_seq))
                     self.consensus[cluster] = cons_seq
@@ -100,33 +116,42 @@ class ResultsObject:
                     pass
 
     def consensus_to_fa(self, cons_header, file_path):
+        """ writes a fasta file for consensus sequences
+        :param cons_header: all consensus seq header to take the corresponding seq from self.consensus[header]
+        :param file_path: where to write the file
+        :return: fasta file
+        """
         directory = file_path + ".consensus"
         c_file = open(directory, "w")
         if type(cons_header) == str:
             cons_header = [cons_header]
-        for key in cons_header:
-            fasta_str = ">{}\n{}\n".format(key, self.consensus[key])
+        for header_key in cons_header:
+            fasta_str = ">{}\n{}\n".format(header_key, self.consensus[header_key])
             c_file.write(fasta_str)
         c_file.close()
         return directory
 
 
 if __name__ == "__main__":
+    __version__ = 0.1
+    args = docopt(__doc__)
+    gene_ps_results = args['--GenePS_result_dir']
+    genome = args['--genome']
+
     check_programs("tblastn", "makeblastdb", "exonerate")
-    make_file = sys.argv[1]
-    genome = sys.argv[2]
-    out_dir = get_out_folder(make_file)
+    out_dir = get_out_folder(gene_ps_results)
+
     # make database
     db_path = make_blast_db(genome, out_dir)
-    print("\ngenerating blast db")
 
     with tempdir() as tmp_dir:
-        for subdir, dirs, files in os.walk(make_file):
-            for file in files:
+        for subdir, dirs, files in os.walk(gene_ps_results):
+            for file_path in files:
                 # file = group of many cluster
-                if file.split(".")[-1] == "makeGenePS":
-                    group_file = os.path.join(subdir, file)
+                if file_path.split(".")[-1] == "makeGenePS":
+                    group_file = os.path.join(subdir, file_path)
                     group_result = ResultsObject(group_file)
+                    group_result.read_gene_ps_consensus_file()
                     # all consensus of a folder
                     header_cons = group_result.consensus.keys()
                     group_cons = os.path.join(out_dir, group_result.group_name)
@@ -144,15 +169,16 @@ if __name__ == "__main__":
                                     try:
                                         exo_obj = make_prediction(query, single_cons, tmp_dir, region)
                                         score = score_prediction(exo_obj, hmm_file)
-                                        score_valid = check_score(group_result.score_list[query], score)
+                                        score_valid = judge_score(group_result.score_list[query], score)
                                     except ExonerateError:
-                                        print("NO EXONERATE PREDICTION")
-                                        continue
-                                    except ScoreError:
-                                        print("{}, {}, {} was filtered out"
+                                        print("[!] NO EXONERATE PREDICTION {}, {}, {}"
                                               .format(query, region.contig, region.s_start))
                                         continue
-                                    print("{}, {}, {} TRUE".format(query, region.contig, region.s_start))
+                                    except ScoreError:
+                                        print("[!] {}, {}, {} was filtered out"
+                                              .format(query, region.contig, region.s_start))
+                                        continue
+                                    print("[-] {}, {}, {} TRUE".format(query, region.contig, region.s_start))
                                     group_result.exonerate_out[query].append(exo_obj)
                     print(group_result.group_name)
                     print((len(group_result.exonerate_out) / group_result.group_size) * 100)

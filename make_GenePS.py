@@ -2,8 +2,13 @@
 ###############
 # MAKE GenePS !
 ###############
-from compute_msa import *
+import os
+import sys
+import tempfile as tmp
 from collections import defaultdict
+
+from run_command import run_cmd, tempdir, check_programs
+from compute_msa import generate_msa, MsaObject
 
 
 ##################
@@ -154,7 +159,7 @@ class ScoreObject:
 
 
 if __name__ == "__main__":
-    check_programs("hmmsearch", "hmmemit", "hmmbuild")
+    check_programs("hmmsearch", "hmmemit", "hmmbuild", "mafft", "trimal")
     infile = sys.argv[1]
     out_directory = sys.argv[2]
     out_dir = get_outdir(out_directory)

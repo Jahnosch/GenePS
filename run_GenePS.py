@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
+import os
+import sys
+import tempfile as tmp
+from collections import defaultdict
 from statistics import mean, stdev
-from exonerate_parser import *
-from find_regions import *
+
+from run_command import tempdir, check_programs
+from exonerate_parser import run_exonerate
+from find_regions import run_tblastn, make_blast_db, parse_blastdb
 from make_GenePS import get_phmm_score, write_to_tempfile
 
 
@@ -106,6 +112,7 @@ class ResultsObject:
 
 
 if __name__ == "__main__":
+    check_programs("tblastn", "makeblastdb", "exonerate")
     make_file = sys.argv[1]
     genome = sys.argv[2]
     out_dir = get_out_folder(make_file)

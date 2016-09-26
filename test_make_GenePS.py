@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 import unittest
-from make_GenePS import *
+import os
 import re
+from make_GenePS import walk_through_input, \
+     hash_fasta, generate_msa, MsaObject, ScoreObject, generate_hmm, get_consensus
+from run_command import tempdir
 
 
 script_path = os.path.dirname(os.path.realpath(__file__))

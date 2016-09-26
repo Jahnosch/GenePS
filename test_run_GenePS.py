@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import unittest
-from run_GenePS import *
+import os
+import run_GenePS
 
 
 script_path = os.path.dirname(os.path.realpath(__file__))

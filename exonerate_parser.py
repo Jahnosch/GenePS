@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import re
+import os
 from collections import defaultdict
-from run_command import *
+from run_command import run_cmd
 
 
 def aacode_3to1(seq):
@@ -114,8 +115,6 @@ def run_exonerate(name, directory, region, query):
             ex.write(line)
     return ExonerateObject(os.path.join(directory, name))
 
-
-check_programs("exonerate")
 
 if __name__ == "__main__":
     test = run_exonerate("blub", "/home/jgravemeyer/Dropbox/MSc_project/data/eef2_test_data/manual_hmm_check",

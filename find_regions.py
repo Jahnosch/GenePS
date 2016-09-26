@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+import os
 from operator import itemgetter
 from collections import defaultdict, namedtuple
-from run_command import *
+from run_command import run_cmd
 
 
 def make_blast_db(genome, temp_dir):
@@ -14,13 +15,6 @@ def make_blast_db(genome, temp_dir):
     return out_dir
 
 
-# regions object or dictionary
-# header
-# sequence
-# original coordinates
-# db_path
-# contig
-# just give the region tuple
 def parse_blastdb(db_path, contig, start, end):
     region = str(start) + "-" + str(end)
     command = "blastdbcmd -db " + db_path + " -dbtype nucl -entry " + contig + " -range " + region
@@ -168,9 +162,6 @@ def run_tblastn(db_path, q_file):
         blastObject = BlastObject(blast_dict, db_path)
         return blastObject
     return None
-
-
-check_programs("makeblastdb", "tblastn", "blastdbcmd")
 
 
 if __name__ == "__main__":

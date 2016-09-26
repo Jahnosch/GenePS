@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from run_command import *
+from run_command import run_cmd
 import os
 
 
@@ -68,4 +68,4 @@ class MsaObject:
         return [self.msa_list[x] for x in range(1, len(self.msa_list), 2)]
 
 
-check_programs("mafft", "trimal")
+

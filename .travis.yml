@@ -5,9 +5,5 @@ python:
   - "3.4"
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
-
-# command to install dependencies
-#install:
-- pip3 install -r requirements2.txt
-# command to run tests
+install: "pip3 install -r requirements2.txt"
 script: "python3 test_make_GenePS.py test"

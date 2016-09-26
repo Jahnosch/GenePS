@@ -2,7 +2,7 @@
 ###############
 # MAKE GenePS !
 ###############
-from compute_msa import *
+from compute_msa import * # try not to use * ... import only what you want to import
 from collections import defaultdict
 
 
@@ -43,7 +43,7 @@ def hash_fasta(fasta_file):
     return fasta
 
 
-def get_outdir(output_dir):
+def get_outdir(output_dir): # is this the same as run_GenePS.py/get_out_folder() ?
     if os.path.isfile(output_dir):
         print(output_dir, " is NOT a directory!")
         print("Please specify an output directory")

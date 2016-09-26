@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 from collections import defaultdict
-from run_command import *
+from run_command import * # try not to use * ... import only what you want to import
 
 
 def aacode_3to1(seq):
@@ -10,6 +10,7 @@ The 3 letter code can be upper, lower, or any mix of cases
 The seq input length should be a factor of 3 or else results
 in an error
 '''
+    # every time you call this function, d gets defined ... define it once as a constant
     d = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
      'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N',
      'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 'TER':'*',
@@ -19,13 +20,22 @@ in an error
         upper_seq= seq.upper()
         single_seq=''
         for i in range(int(len(upper_seq)/3)):
-            single_seq += d[upper_seq[3*i:3*i+3]]
+            single_seq += d[upper_seq[3*i:3*i+3]] # never append to string ...
         return single_seq
+        '''
+        how about ...
+        upper_seq= seq.upper() # or just change the d to Lys, Met, etc ... and you have one less function to call
+        single_seq = []
+        for i in range(0, len(upper_seq), 3):
+            single_seq.append(d.get(upper_seq[i:i+3]))
+        return "".join(single_seq)
+        '''
+
     else:
         print("ERROR: Sequence was not a factor of 3 in length!")
 
 
-def keep_letters (string):
+def keep_letters(string):
     '''removes all non-alphabetic letters from string'''
     regex = re.compile('[^a-zA-Z]')
     return regex.sub("", string)

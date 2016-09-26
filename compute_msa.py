@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from run_command import *
+from run_command import * # try not to use * ... import only what you want to import
 import os
 
 
@@ -49,7 +49,7 @@ class MsaObject:
         self.size.append(len(self.msa_list)/2)
         if self.size[-1] < 4 or \
                         ((self.size[0] - self.size[-1]) / self.size[0]) > 50:
-            return print(self.name, " : NO MSA computable")
+            return print(self.name, " : NO MSA computable") # either print or return
         self.msa_to_fasta()
 
     def trim_length(self):
@@ -67,5 +67,5 @@ class MsaObject:
     def all_aln(self):
         return [self.msa_list[x] for x in range(1, len(self.msa_list), 2)]
 
-
+# why not check all programs when the main executable is used?
 check_programs("mafft", "trimal")

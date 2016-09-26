@@ -33,7 +33,7 @@ class ScoreError(Exception):
     pass
 
 
-# same function as in makeGenePS ?
+# same function as in makeGenePS ? (come back to it later)
 def get_out_folder(makeGenePS_dir):
     if os.path.isfile(makeGenePS_dir):
         print(makeGenePS_dir, " is NOT a directory!")
@@ -139,7 +139,12 @@ if __name__ == "__main__":
     genome = args['--genome']
 
     check_programs("tblastn", "makeblastdb", "exonerate")
+
     out_dir = get_out_folder(gene_ps_results)
+
+    print("#" * 32)
+    print("# writing run_GenePS results to: {}".format(out_dir))
+    print("#" * 32 + "\n")
 
     # make database
     db_path = make_blast_db(genome, out_dir)
@@ -152,6 +157,8 @@ if __name__ == "__main__":
                     group_file = os.path.join(subdir, file_path)
                     group_result = ResultsObject(group_file)
                     group_result.read_gene_ps_consensus_file()
+                    print("\n# Analyzing {} - containing {} files\n"
+                          .format(group_result.group_name, group_result.group_size))
                     # all consensus of a folder
                     header_cons = group_result.consensus.keys()
                     group_cons = os.path.join(out_dir, group_result.group_name)
@@ -171,17 +178,18 @@ if __name__ == "__main__":
                                         score = score_prediction(exo_obj, hmm_file)
                                         score_valid = judge_score(group_result.score_list[query], score)
                                     except ExonerateError:
-                                        print("[!] NO EXONERATE PREDICTION {}, {}, {}"
+                                        print("[!] NO EXONERATE PREDICTION {}, {}, {}\t"
                                               .format(query, region.contig, region.s_start))
                                         continue
                                     except ScoreError:
-                                        print("[!] {}, {}, {} was filtered out"
+                                        print("[!] {}, {}, {}\t got filtered"
                                               .format(query, region.contig, region.s_start))
                                         continue
-                                    print("[-] {}, {}, {} TRUE".format(query, region.contig, region.s_start))
+                                    print("[+] {}, {}, {}\t FOUND".format(query, region.contig, region.s_start))
                                     group_result.exonerate_out[query].append(exo_obj)
-                    print(group_result.group_name)
-                    print((len(group_result.exonerate_out) / group_result.group_size) * 100)
+                    # print(group_result.group_name)
+                    # print((len(group_result.exonerate_out) / group_result.group_size) * 100)
+        print("\n")
 
 # to add later
 '''

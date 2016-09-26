@@ -202,7 +202,6 @@ if __name__ == "__main__":
 
                 # compute scores
                 left_taxa = msa_file.all_header()
-                print(left_taxa)
                 scoring_obj = ScoreObject(fasta_hash, left_taxa, file_name, out_dir)
                 score_list = scoring_obj.compute_scores()
                 phmm_path = scoring_obj.compute_full_phmm()

@@ -151,7 +151,7 @@ class TestScoreObject(unittest.TestCase):
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)
             self.assertTrue(scoring_obj.name == file_name + ".hmmGenePS")
 
-    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "test_phmm_path_not_none requires HMMER")
+    #@unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "test_phmm_path_not_none requires HMMER")
     def test_phmm_path_not_none(self):
         with tempdir() as tmp_dir:
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)

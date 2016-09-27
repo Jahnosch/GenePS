@@ -186,7 +186,7 @@ class TestScoreObject(unittest.TestCase):
             self.assertTrue(consensus_seq == self.test_consensus)
 
 
-if __name__ == '__main__':
-    unittest.main()
+
+
 
 

@@ -69,7 +69,7 @@ class TestHashFasta(unittest.TestCase):
         self.assertEqual(single_seq, 942)
 
 
-@unittest.skipIf("TRAVIS" in os.environ, "skip it on Travis CI")
+@unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "skip it on Travis CI")
 class TestMsaObject(unittest.TestCase):
 
     msa_list = generate_msa(single_file)

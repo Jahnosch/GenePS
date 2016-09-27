@@ -209,9 +209,10 @@ if __name__ == "__main__":
                 file_path = os.path.join(folder, file)
                 print("\tanalyzing:\t {}\n".format(file_name))
                 fasta_hash = hash_fasta(file_path)
-
                 # first MSA for pHMM consensus
                 msa_list = generate_msa(file_path)
+                if file_name == "20_seqs_eef_test":
+                    print(msa_list)
                 msa_file = MsaObject(msa_list, file_name, tmp_dir)
                 msa_file.msa_to_fasta()
                 msa_file.trim_remove()

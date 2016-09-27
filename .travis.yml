@@ -6,9 +6,5 @@ python:
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
   # maintainers to fix their pypy-dev package.
   # here ?
-before_script:
-  - wget http://mafft.cbrc.jp/alignment/software/mafft-7.305-gcc_fc6.x86_64.rpm
-  - rpm -Uvh mafft-7.305-gcc_fc6.x86_64.rpm
-  - exit
 install: "pip3 install -r requirements.txt"
 script: "python3 test_make_GenePS.py test"

@@ -69,7 +69,8 @@ class TestHashFasta(unittest.TestCase):
         self.assertEqual(single_seq, 942)
 
 
-@unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", print("requires mafft"))
+#@unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "requires mafft")
+@unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true", "Skipping this test on Travis CI.")
 class TestMsaObject(unittest.TestCase):
 
     msa_list = generate_msa(single_file)
@@ -148,7 +149,7 @@ class TestScoreObject(unittest.TestCase):
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)
             self.assertTrue(scoring_obj.name == file_name + ".hmmGenePS")
 
-    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", print("test_phmm_path_not_none requires HMMER"))
+    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "test_phmm_path_not_none requires HMMER")
     def test_phmm_path_not_none(self):
         with tempdir() as tmp_dir:
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)
@@ -156,7 +157,7 @@ class TestScoreObject(unittest.TestCase):
             scoring_obj.compute_full_phmm()
             self.assertTrue(scoring_obj.hmm_path)
 
-    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", print("test_correct_score_list requires HMMER"))
+    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "test_correct_score_list requires HMMER")
     def test_correct_score_list(self):
         with tempdir() as tmp_dir:
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)
@@ -170,7 +171,7 @@ class TestScoreObject(unittest.TestCase):
             control = ">MINCO1.Minc01141" + "\n" + "".join(self.fa_hash[">MINCO1.Minc01141"])
             self.assertTrue(fasta_string == control)
 
-    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", print("test_get_consensus requires HMMER"))
+    @unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "test_get_consensus requires HMMER")
     def test_get_consensus(self):
         with tempdir() as tmp_dir:
             cons_hmm = os.path.join(tmp_dir, file_name + ".chmm")

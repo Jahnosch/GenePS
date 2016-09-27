@@ -69,7 +69,6 @@ class TestHashFasta(unittest.TestCase):
         self.assertEqual(single_seq, 942)
 
 
-print(os.getcwd())
 @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
 class TestMsaObject(unittest.TestCase):
 
@@ -157,6 +156,7 @@ class TestScoreObject(unittest.TestCase):
             scoring_obj.compute_full_phmm()
             self.assertTrue(scoring_obj.hmm_path)
 
+    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
     def test_correct_score_list(self):
         with tempdir() as tmp_dir:
             scoring_obj = ScoreObject(self.fa_hash, self.left_taxa, file_name, tmp_dir)
@@ -170,6 +170,7 @@ class TestScoreObject(unittest.TestCase):
             control = ">MINCO1.Minc01141" + "\n" + "".join(self.fa_hash[">MINCO1.Minc01141"])
             self.assertTrue(fasta_string == control)
 
+    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
     def test_get_consensus(self):
         with tempdir() as tmp_dir:
             cons_hmm = os.path.join(tmp_dir, file_name + ".chmm")

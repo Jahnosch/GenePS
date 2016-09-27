@@ -70,7 +70,7 @@ class TestHashFasta(unittest.TestCase):
 
 
 #@unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "requires mafft")
-@unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == True, "Skipping this test on Travis CI.")
+@unittest.skipIf("TRAVIS" in os.environ, "Skipping this test on Travis CI.")
 class TestMsaObject(unittest.TestCase):
 
     msa_list = generate_msa(single_file)

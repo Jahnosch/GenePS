@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.travis.yml" afterPath="$PROJECT_DIR$/.travis.yml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="$PROJECT_DIR$/test_make_GenePS.py" />
     </list>
     <ignored path="GenePS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -51,8 +49,8 @@
       <file leaf-file-name="test_make_GenePS.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test_make_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1386">
-              <caret line="77" column="51" selection-start-line="77" selection-start-column="51" selection-end-line="77" selection-end-column="51" />
+            <state relative-caret-position="508">
+              <caret line="186" column="0" selection-start-line="186" selection-start-column="0" selection-end-line="186" selection-end-column="0" />
               <folding>
                 <element signature="e#23#38#0" expanded="true" />
               </folding>
@@ -473,18 +471,6 @@
     <configuration />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 11h 29m 01s.xml">
-      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 14h 03m 11s.xml">
-      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 14h 10m 12s.xml">
-      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
-    </history-entry>
-    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 14h 12m 14s.xml">
-      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
-    </history-entry>
     <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 14h 20m 36s.xml">
       <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
     </history-entry>
@@ -503,6 +489,18 @@
     <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 15h 12m 06s.xml">
       <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
     </history-entry>
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 15h 23m 12s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 15h 23m 59s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 15h 30m 09s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.27 at 15h 32m 46s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
@@ -511,8 +509,8 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12227074" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -544,7 +542,9 @@
     <MESSAGE value="with hmmer" />
     <MESSAGE value="trimal should fail !" />
     <MESSAGE value="should fail !" />
-    <option name="LAST_COMMIT_MESSAGE" value="should fail !" />
+    <MESSAGE value="with mafft again" />
+    <MESSAGE value="should fail!" />
+    <option name="LAST_COMMIT_MESSAGE" value="should fail!" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -633,16 +633,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="54">
-          <caret line="3" column="17" selection-start-line="3" selection-start-column="17" selection-end-line="3" selection-end-column="17" />
-          <folding>
-            <element signature="e#23#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/run_command.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="414">
@@ -661,6 +651,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="54">
+          <caret line="3" column="17" selection-start-line="3" selection-start-column="17" selection-end-line="3" selection-end-column="17" />
+          <folding>
+            <element signature="e#23#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/make_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -673,8 +673,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test_make_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1386">
-          <caret line="77" column="51" selection-start-line="77" selection-start-column="51" selection-end-line="77" selection-end-column="51" />
+        <state relative-caret-position="508">
+          <caret line="186" column="0" selection-start-line="186" selection-start-column="0" selection-end-line="186" selection-end-column="0" />
           <folding>
             <element signature="e#23#38#0" expanded="true" />
           </folding>

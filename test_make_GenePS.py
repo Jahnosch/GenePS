@@ -68,8 +68,8 @@ class TestHashFasta(unittest.TestCase):
         single_seq = len(self.fa_hash[">AMELL.GB42352-PA"][0])
         self.assertEqual(single_seq, 942)
 
-
-@unittest.skipIf(os.environ["TRAVIS"] == "true", "skip it on Travis CI")
+print(os.getcwd().split("/")[-1])
+@unittest.skipUnless(os.getcwd().split("/")[-1] == "GenePS", "just here")
 class TestMsaObject(unittest.TestCase):
 
     msa_list = generate_msa(single_file)

@@ -62,7 +62,7 @@ class TestHashFasta(unittest.TestCase):
 
     def test_hash_fasta_number_of_entries(self):
         number_entries = len(self.fa_hash.keys())
-        self.assertEqual(number_entries, 11)
+        self.assertEqual(number_entries, 5) # 11
 
     def test_hash_fasta_correct_seq_length(self):
         single_seq = len(self.fa_hash[">AMELL.GB42352-PA"][0])
@@ -75,7 +75,7 @@ class TestMsaObject(unittest.TestCase):
     out_dir = os.path.join(test_data, "group1")
 
     def test_generate_msa(self):
-        self.assertEqual((len(self.msa_list)/2), 11) #11
+        self.assertEqual((len(self.msa_list)/2), 11)
 
     def test_msa_obj_type(self):
         with tempdir() as tmp_dir:

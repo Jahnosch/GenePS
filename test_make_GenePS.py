@@ -12,7 +12,7 @@ test_data = os.path.join(script_path, "test_data")
 single_file = os.path.join(test_data, "group1/eef_test.fa")
 file_name = "eef_test"
 
-msa_test_2 = open(os.path.join(os.path.dirname(__file__), "test_data/group1/msa_test_2.fa"))
+msa_test_2 = open(os.path.join(test_data, "group1/msa_test_2.fa"))
 msa_list = [line.strip() for line in msa_test_2]
 
 

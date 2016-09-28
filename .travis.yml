@@ -6,4 +6,6 @@ python:
   # maintainers to fix their pypy-dev package.
 
 install: "pip3 install -r requirements.txt"
-script: "python3 test_make_GenePS.py"
+script:
+  - python3 test_make_GenePS.py
+  - python3 test_run_GenePS.py

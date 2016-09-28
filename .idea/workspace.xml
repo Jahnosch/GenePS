@@ -8,12 +8,8 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/c_elegans.PRJNA13758.WS254.genomic.nsd" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/c_elegans.PRJNA13758.WS254.genomic.nsi" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/c_elegans.PRJNA13758.WS254.genomic.nsq" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/exonerate_parser.py" afterPath="$PROJECT_DIR$/exonerate_parser.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_regions.py" afterPath="$PROJECT_DIR$/find_regions.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="$PROJECT_DIR$/test_run_GenePS.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.travis.yml" afterPath="$PROJECT_DIR$/.travis.yml" />
     </list>
     <ignored path="GenePS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -45,11 +41,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_make_GenePS.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_make_GenePS.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test_make_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1098">
-              <caret line="139" column="74" selection-start-line="139" selection-start-column="4" selection-end-line="139" selection-end-column="74" />
+            <state relative-caret-position="378">
+              <caret line="51" column="38" selection-start-line="51" selection-start-column="38" selection-end-line="51" selection-end-column="38" />
               <folding>
                 <element signature="e#23#38#0" expanded="true" />
               </folding>
@@ -95,11 +91,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_run_GenePS.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_run_GenePS.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1656">
-              <caret line="281" column="90" selection-start-line="281" selection-start-column="90" selection-end-line="281" selection-end-column="90" />
+            <state relative-caret-position="270">
+              <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
               <folding>
                 <element signature="e#23#38#0" expanded="true" />
               </folding>
@@ -117,11 +113,11 @@
       <list>
         <option value="$PROJECT_DIR$/compute_msa.py" />
         <option value="$PROJECT_DIR$/make_GenePS.py" />
-        <option value="$PROJECT_DIR$/test_make_GenePS.py" />
         <option value="$PROJECT_DIR$/find_regions.py" />
         <option value="$PROJECT_DIR$/exonerate_parser.py" />
         <option value="$PROJECT_DIR$/run_GenePS.py" />
         <option value="$PROJECT_DIR$/test_run_GenePS.py" />
+        <option value="$PROJECT_DIR$/test_make_GenePS.py" />
       </list>
     </option>
   </component>
@@ -184,7 +180,7 @@
     <property name="settings.editor.selected.configurable" value="configurable.group.editor" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
-  <component name="RunManager" selected="Python tests.Unittests in test_run_GenePS">
+  <component name="RunManager" selected="Python tests.Unittests in test_make_GenePS">
     <configuration default="false" name="Unittest TestHashFasta.test_hash_fasta_correct_header" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -441,10 +437,10 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
-        <item index="1" class="java.lang.String" itemvalue="Python.exonerate_parser" />
-        <item index="2" class="java.lang.String" itemvalue="Python.find_regions" />
-        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in test_make_GenePS" />
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in test_make_GenePS" />
+        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
+        <item index="2" class="java.lang.String" itemvalue="Python.exonerate_parser" />
+        <item index="3" class="java.lang.String" itemvalue="Python.find_regions" />
         <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestHashFasta.test_hash_fasta_correct_header" />
       </list>
     </recent_temporary>
@@ -456,11 +452,11 @@
     <configuration />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_test_run_GenePS - 2016.09.28 at 18h 41m 35s.xml">
-      <configuration name="Unittests in test_run_GenePS" configurationId="tests" />
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.28 at 19h 22m 55s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_run_GenePS - 2016.09.28 at 18h 42m 12s.xml">
-      <configuration name="Unittests in test_run_GenePS" configurationId="tests" />
+    <history-entry file="Unittests_in_test_make_GenePS - 2016.09.28 at 19h 27m 56s.xml">
+      <configuration name="Unittests in test_make_GenePS" configurationId="tests" />
     </history-entry>
     <history-entry file="Unittests_in_test_run_GenePS - 2016.09.28 at 19h 06m 10s.xml">
       <configuration name="Unittests in test_run_GenePS" configurationId="tests" />
@@ -495,7 +491,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5243902" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -827,16 +823,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test_make_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1098">
-          <caret line="139" column="74" selection-start-line="139" selection-start-column="4" selection-end-line="139" selection-end-column="74" />
-          <folding>
-            <element signature="e#23#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/find_regions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="504">
@@ -871,8 +857,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1656">
-          <caret line="281" column="90" selection-start-line="281" selection-start-column="90" selection-end-line="281" selection-end-column="90" />
+        <state relative-caret-position="270">
+          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+          <folding>
+            <element signature="e#23#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test_make_GenePS.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="51" column="38" selection-start-line="51" selection-start-column="38" selection-end-line="51" selection-end-column="38" />
           <folding>
             <element signature="e#23#38#0" expanded="true" />
           </folding>

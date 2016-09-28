@@ -49,7 +49,7 @@ class TestWalkThroughInput(unittest.TestCase):
         num_files = 0
         for folder, file_list in self.dir_tree.items():
             num_files += len(file_list)
-        self.assertEqual(num_files, 14)
+        self.assertEqual(num_files, 23)
 
     def test_folder_name(self):
         for folder in self.dir_tree.keys():

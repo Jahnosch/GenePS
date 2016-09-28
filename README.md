@@ -1,4 +1,4 @@
 # GenePS
 Gene positioning system
 
-https://travis-ci.org/jgraveme/GenePS.svg?branch=master
+[![Build Status](https://travis-ci.org/jgraveme/GenePS.svg?branch=master)](https://travis-ci.org/jgraveme/GenePS)

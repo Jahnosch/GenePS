@@ -13,7 +13,6 @@ Usage: run_GenePS.py                          -m <DIR> -g <FILE>
 '''
 
 import os
-import sys
 from docopt import docopt
 import tempfile as tmp
 from collections import defaultdict
@@ -22,7 +21,7 @@ from statistics import mean, stdev
 from run_command import tempdir, check_programs
 from exonerate_parser import run_exonerate
 from find_regions import run_tblastn, make_blast_db, parse_blastdb
-from make_GenePS import get_phmm_score, write_to_tempfile
+from make_GenePS import get_phmm_score, write_to_tempfile, get_outdir
 
 
 class ExonerateError(Exception):
@@ -31,18 +30,6 @@ class ExonerateError(Exception):
 
 class ScoreError(Exception):
     pass
-
-
-# same function as in makeGenePS ? (come back to it later)
-def get_out_folder(makeGenePS_dir):
-    if os.path.isfile(makeGenePS_dir):
-        print(makeGenePS_dir, " is NOT a directory!")
-        print("Please specify an output directory")
-        sys.exit()
-    else:
-        if not os.path.exists(os.path.join(makeGenePS_dir, "Predictions")):
-            os.mkdir(os.path.join(makeGenePS_dir, "Predictions"))
-        return os.path.join(makeGenePS_dir, "Predictions")
 
 
 def judge_score(list_scores, phmm_score):
@@ -140,7 +127,7 @@ if __name__ == "__main__":
 
     check_programs("tblastn", "makeblastdb", "exonerate")
 
-    out_dir = get_out_folder(gene_ps_results)
+    out_dir = get_outdir(gene_ps_results, add_dir="Predictions")
 
     print("#" * 32)
     print("# writing run_GenePS results to: {}".format(out_dir))

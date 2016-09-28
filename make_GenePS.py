@@ -93,16 +93,14 @@ def check_size_len_after_trimal(trimmed_msa):
         pass
 
 
-def get_outdir(output_dir):
-    if os.path.isfile(output_dir):
-        print(output_dir, " is NOT a directory!")
-        print("Please specify an output directory")
-        sys.exit()
-    elif not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-        return output_dir
+def get_outdir(output_dir, add_dir=""):
+    if not os.path.isdir(output_dir):
+        raise SystemExit
+    elif not os.path.exists(os.path.join(output_dir, add_dir)):
+        os.mkdir(os.path.join(output_dir, add_dir))
+        return os.path.join(output_dir, add_dir)
     else:
-        return output_dir
+        return os.path.join(output_dir, add_dir)
 
 
 def generate_hmm (hmm_path, msa_path):
@@ -214,7 +212,12 @@ if __name__ == "__main__":
 
     check_programs("hmmsearch", "hmmemit", "hmmbuild", "mafft", "trimal")
 
-    out_dir = get_outdir(out_directory)
+    try:
+        out_dir = get_outdir(out_directory)
+    except SystemExit:
+        print(out_directory, " is NOT a directory!")
+        print("Please specify an output directory")
+        sys.exit()
 
     # tmp_dir automatically cleaned up
     with tempdir() as tmp_dir:

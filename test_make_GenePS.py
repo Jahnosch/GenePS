@@ -3,7 +3,7 @@ import unittest
 import os
 import re
 from make_GenePS import walk_through_input, check_size_len_after_trimal, InputFileError, MsaLengthError, MsaSizeError, \
-     hash_fasta, ScoreObject, generate_hmm, get_consensus, get_phmm_score, check_for_sufficient_taxa
+     hash_fasta, ScoreObject, generate_hmm, get_consensus, get_phmm_score, check_for_sufficient_taxa, get_outdir
 from run_command import tempdir
 from compute_msa import msa_operations, MsaObject
 
@@ -14,6 +14,21 @@ file_name = "eef_test"
 
 msa_test_2 = open(os.path.join(test_data, "group1/msa_test_2.fa"))
 msa_list = [line.strip() for line in msa_test_2]
+
+
+class TestGetOutDir(unittest.TestCase):
+
+    def test_get_outdir_if_exits(self):
+        self.assertTrue(get_outdir(test_data) == test_data + "/")
+
+    def test_get_outdir_file_error(self):
+        self.assertRaises(SystemExit, lambda: get_outdir(single_file))
+
+    def test_get_outdir_added_dir(self):
+        folder_str = "test_folder"
+        new_outdir = get_outdir(test_data, folder_str)
+        self.assertEqual(os.path.join(test_data, folder_str), new_outdir)
+        os.rmdir(new_outdir)
 
 
 class TestWalkThroughInput(unittest.TestCase):

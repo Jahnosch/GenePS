@@ -29,6 +29,19 @@ from compute_msa import generate_msa, MsaObject
 # Global functions
 ##################
 
+
+class MsaSizeError(Exception):
+    pass
+
+
+class MsaLengthError(Exception):
+    pass
+
+
+class InputFileError(Exception):
+    pass
+
+
 def walk_through_input(input_dir):
     dir_hash = defaultdict(list)
     if not os.path.isdir(input_dir):
@@ -62,6 +75,24 @@ def hash_fasta(fasta_file):
     return fasta
 
 
+def check_for_sufficient_taxa(fasta_dict):
+    if len(fasta_dict) <= 4:
+        raise InputFileError
+    else:
+        pass
+
+
+def check_size_len_after_trimal(trimmed_msa):
+    if trimmed_msa.size[-1] < 4 \
+            or ((trimmed_msa.size[0] - trimmed_msa.size[-1]) / trimmed_msa.size[0]) > 50:
+        raise MsaSizeError
+
+    elif trimmed_msa.lengths[-1] < 20:
+        raise MsaLengthError
+    else:
+        pass
+
+
 def get_outdir(output_dir):
     if os.path.isfile(output_dir):
         print(output_dir, " is NOT a directory!")
@@ -80,11 +111,14 @@ def generate_hmm (hmm_path, msa_path):
     return hmm_path
 
 
-def get_phmm_score(hmm_file, query_file):
-    command = ["hmmsearch", "--noali", hmm_file, query_file]
+def get_phmm_score(hmm_file, query_file, test_this_function=None):
+    if test_this_function is None:
+        command = ["hmmsearch", "--noali", hmm_file, query_file]
+    else:
+        command = test_this_function
     read_count = 0
     for line in run_cmd(command=command, wait=False):
-        if "E-value" in line or read_count ==1:
+        if "E-value" in line or read_count == 1:
             read_count += 1
         elif read_count == 2:
             line = line.strip("\n").split()
@@ -208,22 +242,28 @@ if __name__ == "__main__":
                 file_name = file.strip().split(".")[0]
                 file_path = os.path.join(folder, file)
                 print("\tanalyzing:\t {}\n".format(file_name))
-                fasta_hash = hash_fasta(file_path)
+                try:
+                    fasta_hash = hash_fasta(file_path)
+                    check_for_sufficient_taxa(fasta_hash)
+                except InputFileError:
+                    print("\t[!] {} does not contain enough entries\n".format(file_name))
+                    continue
+
                 # first MSA for pHMM consensus
                 msa_list = generate_msa(file_path)
-                if file_name == "20_seqs_eef_test":
-                    print(msa_list)
                 msa_file = MsaObject(msa_list, file_name, tmp_dir)
                 msa_file.msa_to_fasta()
                 msa_file.trim_remove()
-                if msa_file.size[-1] < 4 or ((msa_file.size[0] - msa_file.size[-1]) / msa_file.size[0]) > 50:
-                    print("[!] {} : NO MSA computable - "
-                          "only {} taxa remained MSA after trimming".format(msa_file.name, msa_file.size))
-                    continue
                 msa_file.trim_length()
-                if msa_file.lengths[-1] < 20:
-                    print("[!] {} : NO MSA computable - "
-                          "MSA length too short after trimming".format(msa_file.name))
+                try:
+                    check_size_len_after_trimal(msa_file)
+                except MsaSizeError:
+                    print("\t[!] {} : NO MSA computable - "
+                          "only {} taxa remained MSA after trimming\n".format(msa_file.name, msa_file.size))
+                    continue
+                except MsaLengthError:
+                    print("\t[!] {} : NO MSA computable - "
+                          "MSA length too short after trimming\n".format(msa_file.name))
                     continue
 
                 # pHMM consensus

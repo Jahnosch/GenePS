@@ -280,3 +280,6 @@ class TestGlobalGenePS(unittest.TestCase):
         with tempdir() as tmp:
             exo_obj = make_prediction("test_precition", self.test_consensus, tmp, region, test_db)
             self.assertTrue(grap_values(exo_obj.header)[0]["query"] == "20_seqs_eef_test")
+
+if __name__ == '__main__':
+    unittest.main()

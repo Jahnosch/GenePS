@@ -6,8 +6,8 @@ from run_command import run_cmd
 
 
 def make_blast_db(genome, temp_dir):
-    name = os.path.splitext(genome)[0].split("/")[-1]
-    out_dir = os.path.join(temp_dir,name)
+    name = genome.split("/")[-1]
+    out_dir = os.path.join(temp_dir, name)
     if os.path.exists(out_dir + ".nhr"):
         print("\n[!] BLAST db already exists:\n{}".format(os.path.join(temp_dir, name)))
         return out_dir
@@ -17,9 +17,12 @@ def make_blast_db(genome, temp_dir):
     return out_dir
 
 
-def parse_blastdb(db_path, contig, start, end):
+def parse_blastdb(db_path, contig, start, end, test_cmd=None):
     region = str(start) + "-" + str(end)
-    command = "blastdbcmd -db " + db_path + " -dbtype nucl -entry " + contig + " -range " + region
+    if test_cmd is None:
+        command = "blastdbcmd -db " + db_path + " -dbtype nucl -entry " + contig + " -range " + region
+    else:
+        command = test_cmd
     results = []
     for line in run_cmd(command=command, wait=False):
         line = line.strip("\n")
@@ -58,25 +61,30 @@ class HspListObject:
         if self.hsp_sorted is []:
             self.sort_hsp_list()
         last_idx = 0
-        single_region = None
-        all_regions = []
+        single_merge = None
+        all_merged_regions = []
         for idx in range(1, len(self.hsp_sorted)):
             if (self.s_end[idx] - self.s_start[last_idx]) < self.merge_dist \
                     and self.strand[idx] == self.strand[last_idx]:
-                if single_region is None:
-                    single_region = [last_idx]
-                single_region.append(idx)
+                if single_merge is None:
+                    single_merge = [last_idx]
+                single_merge.append(idx)
             else:
-                if single_region is not None:
-                    all_regions.append(single_region)
-                    single_region = None
+                if single_merge is not None:
+                    all_merged_regions.append(single_merge)
+                    single_merge = None
                 else:
-                    all_regions.append([idx])
+                    if idx == 1:
+                        all_merged_regions.append([last_idx])
+                        all_merged_regions.append([idx])
+                    else:
+                        all_merged_regions.append([idx])
             last_idx = idx
-        all_regions.append(single_region)
-        return all_regions
+        if single_merge is not None:
+            all_merged_regions.append(single_merge)
+        return all_merged_regions
 
-    def compute_cov(self, pos_list, denominator):
+    def compute_coverage(self, pos_list, denominator):
         """ coverage of aligned sequences """
         aligned_pos = 0
         pos_list = sorted(pos_list)
@@ -112,18 +120,17 @@ class BlastObject:
                                     chunk_cov=chunk_cov, query_cov=query_cov, q_len = hsp_list[0]["q_len"])
                     inferred_regions[query][subject].append(region)
                 else:
-                    # test in test suit: if subject I 2*pop(0) == [[1],[3,4]]
                     hits = HspListObject(hsp_list, self.merging_distance)
                     hits.sort_hsp_list()
-                    all_regions = hits.merge_to_region()
-                    for region in all_regions:
+                    idx_all_merged_regions = hits.merge_to_region()
+                    for region in idx_all_merged_regions:
                         begin, stop = region[0], region[-1]
                         strand = hits.strand[begin]
                         s_start = hits.s_start[begin] - self.flanking_distance
                         s_end = hits.s_end[stop] + self.flanking_distance
                         q_pos = hits.q_start[begin:stop+1] + hits.q_end[begin:stop+1]
-                        query_cov = hits.compute_cov(q_pos, (hits.q_len[0]))
-                        chunk_cov = hits.compute_cov(q_pos, (max(q_pos) - min(q_pos)))
+                        query_cov = hits.compute_coverage(q_pos, (hits.q_len[0]))
+                        chunk_cov = hits.compute_coverage(q_pos, (max(q_pos) - min(q_pos)))
                         region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
                                         chunk_cov=chunk_cov, query_cov=query_cov, q_len= hits.q_len[0])
                         inferred_regions[query][subject].append(region)
@@ -132,10 +139,12 @@ class BlastObject:
 
 # since every consensus is know in one file, tblastn should always give a hit
 # just if no consensus hits --> quit entiry analysis
-def run_tblastn(db_path, q_file):
-    command =["tblastn", "-query", q_file,"-db", db_path, "-outfmt",
+def run_tblastn(db_path, q_file, test_cmd=None):
+    if test_cmd is None:
+        command =["tblastn", "-query", q_file,"-db", db_path, "-outfmt",
               """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-5"]
-
+    else:
+        command = test_cmd
     blast_dict = {}
     results_flag = False
     for line in run_cmd(command=command, wait=False):
@@ -161,15 +170,16 @@ def run_tblastn(db_path, q_file):
             blast_dict[query][subject].append(row)
 
     if results_flag:
-        blastObject = BlastObject(blast_dict, db_path)
-        return blastObject
+        blast_object = BlastObject(blast_dict, db_path)
+        return blast_object
     return None
 
 
 if __name__ == "__main__":
-    db = "/home/jgravemeyer/Dropbox/MSc_project/data/test_out/Predictions/c_elegans.PRJNA13758.WS254.genomic"
-    query = "/home/jgravemeyer/Desktop/kog0018.consensus"
-    blast = run_tblastn(db, query)
+    db = "/home/jgravemeyer/Dropbox/MSc_project/data/test_out/Predictions/c_elegans.PRJNA13758.WS254.genomic.fa"
+    query_test = "/home/jgravemeyer/Desktop/test_consensus_eef.fa"
+    blast = run_tblastn(db, query_test)
+    print(len(blast.blast_out["20_seqs_eef_test"]["I"]))
     blast.infer_regions()
     print(blast.inferred_regions)
     #for query, subject in blast.inferred_regions.items():
@@ -178,9 +188,12 @@ if __name__ == "__main__":
     #        print(subject)
     #        for region in subject:
     #            print(region.s_start)
-    print(blast.inferred_regions["KOG0018"]["I"][0].contig)
-    print(blast.inferred_regions["KOG0018"]["I"][0].q_len)
-    print(blast.inferred_regions["KOG0018"]["I"][0].s_start)
-    print(blast.inferred_regions["KOG0018"]["I"][0].s_end)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].contig)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].q_len)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].s_start)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].s_end)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].chunk_cov)
+    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].query_cov)
+
 
 

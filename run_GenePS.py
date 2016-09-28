@@ -19,7 +19,7 @@ from collections import defaultdict
 from statistics import mean, stdev
 
 from run_command import tempdir, check_programs
-from exonerate_parser import run_exonerate
+from exonerate_parser import run_exonerate, grap_values
 from find_regions import run_tblastn, make_blast_db, parse_blastdb
 from make_GenePS import get_phmm_score, write_to_tempfile, get_outdir
 
@@ -51,16 +51,16 @@ def coverage_filter(area):
 
 
 def score_prediction(ex_obj, hmm):
-    ex_seq = ex_obj.grap_values(ex_obj.target_prot)
-    q_name = ex_obj.grap_values(ex_obj.header)["query"]
+    ex_seq = grap_values(ex_obj.target_prot)[0]
+    q_name = grap_values(ex_obj.header)[0]["query"]
     with tmp.NamedTemporaryFile() as ex_file:
         write_to_tempfile(ex_file.name, ">{}\n{}".format(q_name, ex_seq))
         final_score = get_phmm_score(hmm, ex_file.name)
     return final_score
 
 
-def make_prediction(q_name, cons_file, dir_path, area):
-    region_str = parse_blastdb(db_path, area.contig, area.s_start, area.s_end)
+def make_prediction(q_name, cons_file, dir_path, area, blast_db):
+    region_str = parse_blastdb(blast_db, area.contig, area.s_start, area.s_end)
     with tmp.NamedTemporaryFile() as reg_file:
         write_to_tempfile(reg_file.name, region_str)
         ex_name = q_name + ".exon"
@@ -161,7 +161,7 @@ if __name__ == "__main__":
                             for region in contig_regions:
                                 if coverage_filter(region) is True:
                                     try:
-                                        exo_obj = make_prediction(query, single_cons, tmp_dir, region)
+                                        exo_obj = make_prediction(query, single_cons, tmp_dir, region, db_path)
                                         score = score_prediction(exo_obj, hmm_file)
                                         score_valid = judge_score(group_result.score_list[query], score)
                                     except ExonerateError:
@@ -169,14 +169,15 @@ if __name__ == "__main__":
                                               .format(query, region.contig, region.s_start))
                                         continue
                                     except ScoreError:
-                                        print("[!] {}, {}, {}\t got filtered"
+                                        print("[!] {}, {}, {}\t filtered by score"
                                               .format(query, region.contig, region.s_start))
                                         continue
                                     print("[+] {}, {}, {}\t FOUND".format(query, region.contig, region.s_start))
                                     group_result.exonerate_out[query].append(exo_obj)
                     # print(group_result.group_name)
                     # print((len(group_result.exonerate_out) / group_result.group_size) * 100)
-        print("\n")
+            print("\n")
+
 
 # to add later
 '''

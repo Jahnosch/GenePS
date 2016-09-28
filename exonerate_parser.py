@@ -96,16 +96,6 @@ class ExonerateObject:
             for trange, seq in trange.items():
                 self.target_prot[target][trange] = aacode_3to1(seq)
 
-    def grap_values(self, attribute):
-        attribute = attribute
-        out_list = []
-        for query, trange in attribute.items():
-            for t_range, last_value in trange.items():
-                out_list.append(last_value)
-        if len(out_list) == 1:
-            return out_list[0]
-        return out_list
-
 
 def run_exonerate(name, directory, region, query):
     cmd = "exonerate -m p2g:b --softmaskquery no -E yes -Q protein -T dna -n 1 " \
@@ -118,9 +108,12 @@ def run_exonerate(name, directory, region, query):
 
 
 if __name__ == "__main__":
-    test = run_exonerate("blub", "/home/jgravemeyer/Dropbox/MSc_project/data/eef2_test_data/manual_hmm_check",
-                  "/home/jgravemeyer/Desktop/exon_test",
-                  "/home/jgravemeyer/Desktop/rars_wormbase.fasta")
+    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
+                  "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/blast_region.fasta",
+                  "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/test_consensus_eef.fa")
 
-    print(test.header.items())
     print(grap_values(test.header)[0]["query"])
+    print(grap_values(test.target_prot))
+    print(grap_values(test.target_dna))
+    print(grap_values(test.query_prot))
+    print(grap_values(test.gff))

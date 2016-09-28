@@ -1,0 +1,7 @@
+# TBLASTN 2.4.0+
+# Query: 20_seqs_eef_test
+# Database: /home/jgravemeyer/Dropbox/MSc_project/data/test_out/Predictions/c_elegans.PRJNA13758.WS254.genomic
+# Fields: query acc., subject acc., evalue, q. start, q. end, s. start, s. end, query length, sbjct frame
+# 12 hits found
+20_seqs_eef_test	I	0.0	244	850	9164821	9166695	850	1
+# BLAST processed 1 queries

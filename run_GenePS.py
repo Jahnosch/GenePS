@@ -174,6 +174,8 @@ if __name__ == "__main__":
                                         continue
                                     print("[+] {}, {}, {}\t FOUND".format(query, region.contig, region.s_start))
                                     group_result.exonerate_out[query].append(exo_obj)
+                                    #print(query)
+                                    #print(grap_values(exo_obj.target_prot)[0])
                     # print(group_result.group_name)
                     # print((len(group_result.exonerate_out) / group_result.group_size) * 100)
             print("\n")

@@ -46,9 +46,9 @@ class ExonerateObject:
     def __init__(self, exonerate_file):
         self.path = os.path.realpath(exonerate_file)
         self.header = defaultdict(dict)
-        self.query_prot = defaultdict(lambda: defaultdict(str)) #three leafs dict
-        self.target_dna = defaultdict(lambda: defaultdict(str))
-        self.target_prot = defaultdict(lambda: defaultdict(str))
+        self.query_prot = defaultdict(lambda: defaultdict(list)) #three leafs dict
+        self.target_dna = defaultdict(lambda: defaultdict(list))
+        self.target_prot = defaultdict(lambda: defaultdict(list))
         self.gff = defaultdict(lambda: defaultdict(list))
         self.exonerate_processor(exonerate_file)
 
@@ -75,14 +75,18 @@ class ExonerateObject:
                         read_flag = 2
                     elif read_flag == 2:
                         if not line.startswith("#"):
-                            self.query_prot[target][trange] += (del_intron(remove_non_letter_signs(line)))
+                            self.query_prot[target][trange].append(del_intron(remove_non_letter_signs(line)))
                             next(ex)
-                            self.target_prot[target][trange] += (remove_non_letter_signs(next(ex)))
-                            self.target_dna[target][trange] += (remove_non_letter_signs(next(ex)))
-                        elif "GFF" in line:
-                            read_flag = 3
+                            self.target_prot[target][trange].append(remove_non_letter_signs(next(ex)))
+                            self.target_dna[target][trange].append(remove_non_letter_signs(next(ex)))
                         else:
-                            read_flag = 0
+                            self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
+                            self.target_dna[target][trange] = "".join(self.target_dna[target][trange])
+                            self.target_prot[target][trange] = aacode_3to1("".join(self.target_prot[target][trange]))
+                            if "GFF" in line:
+                                read_flag = 3
+                            else:
+                                read_flag = 0
                     elif read_flag == 3:
                         if not line.startswith("#"):
                             line = line.strip("\n").split("\t")[2:7]
@@ -92,9 +96,6 @@ class ExonerateObject:
                             read_flag = 0
                     else:
                         pass
-        for target, trange in self.target_prot.items():
-            for trange, seq in trange.items():
-                self.target_prot[target][trange] = aacode_3to1(seq)
 
 
 def run_exonerate(name, directory, region, query):

@@ -3,7 +3,7 @@ import unittest
 import os
 import re
 from make_GenePS import walk_through_input, check_size_len_after_trimal, InputFileError, MsaLengthError, MsaSizeError, \
-     hash_fasta, ScoreObject, generate_hmm, get_consensus, get_phmm_score, check_for_sufficient_taxa, get_outdir
+     hash_fasta, ScoreObject, generate_hmm, get_consensus, get_phmm_score, check_for_sufficient_taxa, get_outdir, main_process
 from run_command import tempdir
 from compute_msa import msa_operations, MsaObject
 
@@ -19,7 +19,7 @@ msa_list = [line.strip() for line in msa_test_2]
 class TestGetOutDir(unittest.TestCase):
 
     def test_get_outdir_if_exits(self):
-        self.assertTrue(get_outdir(test_data) == test_data + "/")
+        self.assertTrue(get_outdir(test_data) == test_data)
 
     def test_get_outdir_file_error(self):
         self.assertRaises(SystemExit, lambda: get_outdir(single_file))
@@ -49,7 +49,7 @@ class TestWalkThroughInput(unittest.TestCase):
         num_files = 0
         for folder, file_list in self.dir_tree.items():
             num_files += len(file_list)
-        self.assertEqual(num_files, 23)
+        self.assertEqual(num_files, 26)
 
     def test_folder_name(self):
         for folder in self.dir_tree.keys():
@@ -239,6 +239,22 @@ class TestScoreObject(unittest.TestCase):
             consensus_seq = get_consensus(cons_hmm)
             self.assertTrue(consensus_seq == self.test_consensus)
 
+
+class MainGenePS(unittest.TestCase):
+
+    scores = [1981, 1808, 1893, 1981, 1981, 1889]
+
+    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
+    def test_main_process_scores(self):
+        with tempdir() as tmp:
+            temp_dir = tmp
+            out_dir = tmp
+            cluster_file = single_file
+            folder = os.path.join(test_data, "group1")
+            file_name, phmm_path, score_list, consensus_seq = main_process(temp_dir, out_dir, cluster_file, folder)
+            self.assertTrue(score_list == self.scores)
+            self.assertTrue(file_name.split("/")[-1] == "eef_test")
+            self.assertTrue(phmm_path.split("/")[-1] == "eef_test.hmmGenePS")
 
 if __name__ == '__main__':
     unittest.main()

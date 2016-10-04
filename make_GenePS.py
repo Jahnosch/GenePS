@@ -25,9 +25,9 @@ from run_command import run_cmd, tempdir, check_programs
 from compute_msa import generate_msa, MsaObject
 
 
-##################
+########################################################################################################################
 # Global functions
-##################
+########################################################################################################################
 
 
 class MsaSizeError(Exception):
@@ -44,14 +44,14 @@ class InputFileError(Exception):
 
 def walk_through_input(input_dir):
     dir_hash = defaultdict(list)
-    if not os.path.isdir(input_dir):
+    if os.path.isfile(input_dir):
         dir_hash[os.path.dirname(input_dir)].append(os.path.split(input_dir)[-1])
         return dir_hash
     else:
         for subdir, dirs, files in os.walk(input_dir):
             for single_file in files:
                 single_file = single_file
-                single_folder = subdir
+                single_folder = os.path.abspath(subdir)
                 dir_hash[single_folder].append(single_file)
         return dir_hash
 
@@ -94,13 +94,13 @@ def check_size_len_after_trimal(trimmed_msa):
 
 
 def get_outdir(output_dir, add_dir=""):
-    if not os.path.isdir(output_dir):
+    if os.path.isfile(output_dir):
         raise SystemExit
     elif not os.path.exists(os.path.join(output_dir, add_dir)):
         os.mkdir(os.path.join(output_dir, add_dir))
-        return os.path.join(output_dir, add_dir)
+        return os.path.abspath(os.path.join(output_dir, add_dir))    # absolute paths
     else:
-        return os.path.join(output_dir, add_dir)
+        return os.path.abspath(os.path.join(output_dir, add_dir))
 
 
 def generate_hmm (hmm_path, msa_path):
@@ -152,9 +152,8 @@ def write_to_tempfile (tmp_name, string):
     new_file.close()
 
 
-###############
-# Scoring class
-###############
+########################################################################################################################
+
 
 class ScoreObject:
     def __init__(self, fasta_dict, taxa, name, directory):
@@ -191,7 +190,10 @@ class ScoreObject:
                     write_to_tempfile(msa_tmp.name, msa_string)
                     with tmp.NamedTemporaryFile() as hmm_tmp:
                         generate_hmm(hmm_tmp.name, msa_tmp.name)
-                        score = get_phmm_score(hmm_tmp.name, q_tmp.name)
+                        try:
+                            score = get_phmm_score(hmm_tmp.name, q_tmp.name)
+                        except IndexError:
+                            continue
             self.score_list.append(int(score))
         return self.score_list
 
@@ -204,6 +206,58 @@ class ScoreObject:
         return self.hmm_path
 
 
+########################################################################################################################
+
+
+def main_process(tmp_dir, out_dir, cluster_file, folder, verbose = None):
+    """summary of all function needed to process one single file"""
+
+    # preparing input file
+    file_name = cluster_file.strip().split(".")[0]
+    file_path = os.path.join(folder, cluster_file)
+    print("\tanalyzing:\t {}\n".format(file_name))
+    try:
+        fasta_hash = hash_fasta(file_path)
+        check_for_sufficient_taxa(fasta_hash)
+    except InputFileError:
+        print("\t[!] {} does not contain enough entries\n".format(file_name))
+        return None
+
+    # first MSA for pHMM consensus
+    msa_list = generate_msa(file_path)
+    msa_file = MsaObject(msa_list, file_name, tmp_dir)
+    msa_file.msa_to_fasta()
+    msa_file.trim_remove()
+    msa_list = msa_file.re_aligne(fasta_hash)
+    try:
+        check_size_len_after_trimal(msa_file)
+    except MsaSizeError:
+        print("\t[!] {} : NO MSA computable - "
+              "only {} taxa remained MSA after trimming\n".format(msa_file.name, msa_file.size))
+        return None
+    except MsaLengthError:
+        print("\t[!] {} : NO MSA computable - "
+              "MSA length too short after trimming\n".format(msa_file.name))
+        return None
+
+    # pHMM consensus
+    cons_hmm = os.path.join(tmp_dir, file_name + ".chmm")
+    generate_hmm(cons_hmm, msa_file.path)
+    consensus_seq = get_consensus(cons_hmm)
+
+    # compute scores
+    left_taxa = msa_file.all_header()
+    scoring_obj = ScoreObject(fasta_hash, left_taxa, file_name, out_dir)
+    score_list = scoring_obj.compute_scores()
+    phmm_path = scoring_obj.compute_full_phmm()
+    print("\tscores: ", score_list, "\n")
+
+    return file_name, phmm_path, score_list, consensus_seq
+
+
+########################################################################################################################
+
+
 if __name__ == "__main__":
     __version__ = 0.1
     args = docopt(__doc__)
@@ -211,79 +265,40 @@ if __name__ == "__main__":
     out_directory = args['--output']
 
     check_programs("hmmsearch", "hmmemit", "hmmbuild", "mafft", "trimal")
-
+    dir_tree = walk_through_input(infile)
     try:
-        out_dir = get_outdir(out_directory)
+        output_dir = get_outdir(out_directory)
     except SystemExit:
         print(out_directory, " is NOT a directory!")
         print("Please specify an output directory")
         sys.exit()
 
-    # tmp_dir automatically cleaned up
-    with tempdir() as tmp_dir:
+    with tempdir() as temp_dir:
         counter = 1
-        dir_tree = walk_through_input(infile)
         number_groups = len(dir_tree)
         print("#" * 27)
         print("# {} - groups given as input".format(str(number_groups)))
         print("#" * 27 + "\n")
 
         # folder = group; file = cluster
-        for folder, file_list in dir_tree.items():
+        for group_folder, file_list in dir_tree.items():
             number_files = len(file_list)
-            folder_name = folder.split("/")[-1]
+            folder_name = group_folder.split("/")[-1]
             print("[{}] starting with {} -> containing {} files\n"
                   .format(str(counter), folder_name, str(number_files)))
 
-            # single results file per group
-            results_path = os.path.join(out_dir, folder_name + ".makeGenePS")
+            # single results file per group/folder
+            results_path = os.path.join(output_dir, folder_name + ".makeGenePS")
             results_file = open(results_path, "w")
             results_file.write("#group: {}\n#group_size: {}\n".format(folder_name, str(number_files)))
 
-            # run script for all files
-            for file in file_list:
-                file_name = file.strip().split(".")[0]
-                file_path = os.path.join(folder, file)
-                print("\tanalyzing:\t {}\n".format(file_name))
-                try:
-                    fasta_hash = hash_fasta(file_path)
-                    check_for_sufficient_taxa(fasta_hash)
-                except InputFileError:
-                    print("\t[!] {} does not contain enough entries\n".format(file_name))
-                    continue
-
-                # first MSA for pHMM consensus
-                msa_list = generate_msa(file_path)
-                msa_file = MsaObject(msa_list, file_name, tmp_dir)
-                msa_file.msa_to_fasta()
-                msa_file.trim_remove()
-                msa_file.trim_length()
-                try:
-                    check_size_len_after_trimal(msa_file)
-                except MsaSizeError:
-                    print("\t[!] {} : NO MSA computable - "
-                          "only {} taxa remained MSA after trimming\n".format(msa_file.name, msa_file.size))
-                    continue
-                except MsaLengthError:
-                    print("\t[!] {} : NO MSA computable - "
-                          "MSA length too short after trimming\n".format(msa_file.name))
-                    continue
-
-                # pHMM consensus
-                cons_hmm = os.path.join(tmp_dir, file_name + ".chmm")
-                generate_hmm(cons_hmm, msa_file.path)
-                consensus_seq = get_consensus(cons_hmm)
-
-                # compute scores
-                left_taxa = msa_file.all_header()
-                scoring_obj = ScoreObject(fasta_hash, left_taxa, file_name, out_dir)
-                score_list = scoring_obj.compute_scores()
-                phmm_path = scoring_obj.compute_full_phmm()
-                print("\tscores: ", score_list, "\n")
+            # run main function processing each file
+            for each_file in file_list:
+                file__name, hmm_path, scores, consensus = main_process(temp_dir, output_dir, each_file, group_folder)
 
                 # write to results
                 results_file.write(">name: {}\n>phmm_dir: {}\n>score_list: {}\n{}\n".
-                                   format(file_name, phmm_path, score_list, consensus_seq))
+                                   format(file__name, hmm_path, scores, consensus))
             counter += 1
             results_file.close()
 

@@ -57,6 +57,12 @@ class HspListObject:
         self.hsp_sorted = sorted(self.hsp_list, key=itemgetter("s_start"))
         self.get_sorted_attributes()
 
+#    def merge_condition(self, idx, last_idx):
+#        if self.s_end[idx]
+#        if abs(self.s_end[idx] - self.s_start[last_idx]) < self.merge_dist\
+#                and self.strand[idx] == self.strand[last_idx]:
+#            return True
+
     def merge_to_region(self):
         if self.hsp_sorted is []:
             self.sort_hsp_list()
@@ -64,7 +70,7 @@ class HspListObject:
         single_merge = None
         all_merged_regions = []
         for idx in range(1, len(self.hsp_sorted)):
-            if (self.s_end[idx] - self.s_start[last_idx]) < self.merge_dist \
+            if abs(self.s_end[idx] - self.s_start[last_idx]) < self.merge_dist \
                     and self.strand[idx] == self.strand[last_idx]:
                 if single_merge is None:
                     single_merge = [last_idx]
@@ -74,23 +80,31 @@ class HspListObject:
                     all_merged_regions.append(single_merge)
                     single_merge = None
                 else:
-                    if idx == 1:
-                        all_merged_regions.append([last_idx])
-                        all_merged_regions.append([idx])
-                    else:
-                        all_merged_regions.append([idx])
+                    all_merged_regions.append([last_idx])
             last_idx = idx
         if single_merge is not None:
             all_merged_regions.append(single_merge)
+        else:
+            all_merged_regions.append([len(self.hsp_sorted)-1])
         return all_merged_regions
 
-    def compute_coverage(self, pos_list, denominator):
-        """ coverage of aligned sequences """
-        aligned_pos = 0
-        pos_list = sorted(pos_list)
-        for x in range(0, len(pos_list)-1,2):
-            aligned_pos += pos_list[x+1] - pos_list[x]
-        return round((aligned_pos / denominator) * 100)
+    def compute_coverage(self, q_start_pos, q_end_pos, q_length):
+        q_starts, q_ends = zip(*sorted(zip(q_start_pos, q_end_pos)))
+        aligned_bits_sum = 0
+        prev_idx = 0
+        for idx in range(1, len(q_ends)):
+            if q_starts[idx] < q_ends[prev_idx]:
+                if q_ends[idx] < q_ends[prev_idx]:
+                    continue
+                else:
+                    aligned_bits_sum += q_ends[idx] - q_ends[prev_idx]
+            else:
+                aligned_bits_sum += q_ends[idx] - q_starts[idx]
+            prev_idx = idx
+        aligned_bits_sum += q_ends[0] - q_starts[0]
+        chunck_cov = round((aligned_bits_sum / (q_ends[-1] - q_starts[0])) * 100)
+        query_cov = round((aligned_bits_sum / q_length) * 100)
+        return chunck_cov, query_cov
 
 
 class BlastObject:
@@ -112,7 +126,7 @@ class BlastObject:
                 hsp_list = self.blast_out[query][subject]
                 if len(hsp_list) == 1:
                     chunk_cov = 100  # -> just one start and end pos
-                    query_cov = round(((hsp_list[0]["s_end"] - hsp_list[0]["s_start"]) * 100) / hsp_list[0]["q_len"])
+                    query_cov = round(((hsp_list[0]["q_end"] - hsp_list[0]["q_start"]) * 100) / hsp_list[0]["q_len"])
                     strand = hsp_list[0]["strand"]
                     s_start = hsp_list[0]["s_start"] - self.flanking_distance
                     s_end = hsp_list[0]["s_end"] + self.flanking_distance
@@ -128,9 +142,9 @@ class BlastObject:
                         strand = hits.strand[begin]
                         s_start = hits.s_start[begin] - self.flanking_distance
                         s_end = hits.s_end[stop] + self.flanking_distance
-                        q_pos = hits.q_start[begin:stop+1] + hits.q_end[begin:stop+1]
-                        query_cov = hits.compute_coverage(q_pos, (hits.q_len[0]))
-                        chunk_cov = hits.compute_coverage(q_pos, (max(q_pos) - min(q_pos)))
+                        q_start_pos = hits.q_start[begin:stop+1]
+                        q_end_pos = hits.q_end[begin:stop+1]
+                        chunk_cov, query_cov = hits.compute_coverage(q_start_pos, q_end_pos, hits.q_len[0])
                         region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
                                         chunk_cov=chunk_cov, query_cov=query_cov, q_len= hits.q_len[0])
                         inferred_regions[query][subject].append(region)

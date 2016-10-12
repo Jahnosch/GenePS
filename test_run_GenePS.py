@@ -201,10 +201,11 @@ class TestHspListObject(unittest.TestCase):
         hits = HspListObject(self.hsp_list, 10000)
         hits.sort_hsp_list()
         hits.merge_to_region()
-        q_pos = hits.q_start[0:3] + hits.q_end[0:3]
-        query_cov = hits.compute_coverage(q_pos, (hits.q_len[0]))
-        self.assertEqual(query_cov, 99)
-
+        q_start_pos = hits.q_start[0:3]
+        q_end_pos = hits.q_end[0:3]
+        chunck_cov, query_cov = hits.compute_coverage(q_start_pos, q_end_pos, hits.q_len[0])
+        self.assertEqual(query_cov, 100)
+        self.assertEqual(chunck_cov, 100)
 
 class TestExonerateParser(unittest.TestCase):
 

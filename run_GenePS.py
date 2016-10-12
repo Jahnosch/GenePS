@@ -21,6 +21,7 @@ from statistics import mean, stdev
 from run_command import tempdir, check_programs
 from exonerate_parser import run_exonerate, grap_values
 from find_regions import run_tblastn, make_blast_db, parse_blastdb
+from check_accuracy import true_coordinates_hash, RegionObj
 from make_GenePS import get_phmm_score, write_to_tempfile, get_outdir
 
 
@@ -46,7 +47,7 @@ def judge_score(list_scores, phmm_score):
 def coverage_filter(area):
     if area.chunk_cov == 100 and area.query_cov < 40:
         return False
-    elif area.chunk_cov > 41:
+    elif area.chunk_cov > 30:
         return True
 
 
@@ -55,7 +56,7 @@ def score_prediction(ex_obj, hmm):
     q_name = grap_values(ex_obj.header)[0]["query"]
     with tmp.NamedTemporaryFile() as ex_file:
         write_to_tempfile(ex_file.name, ">{}\n{}".format(q_name, ex_seq))
-        final_score = get_phmm_score(hmm, ex_file.name)
+        final_score = get_phmm_score(hmm, ex_file.name)[0]
     return final_score
 
 
@@ -122,20 +123,17 @@ class ResultsObject:
 if __name__ == "__main__":
     __version__ = 0.1
     args = docopt(__doc__)
-    gene_ps_results = args['--GenePS_result_dir']
+    gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
     genome = args['--genome']
-
     check_programs("tblastn", "makeblastdb", "exonerate")
 
     out_dir = get_outdir(gene_ps_results, add_dir="Predictions")
-
     print("#" * 32)
     print("# writing run_GenePS results to: {}".format(out_dir))
     print("#" * 32 + "\n")
 
     # make database
     db_path = make_blast_db(genome, out_dir)
-
     with tempdir() as tmp_dir:
         for subdir, dirs, files in os.walk(gene_ps_results):
             for file_path_str in files:
@@ -144,7 +142,7 @@ if __name__ == "__main__":
                     group_file = os.path.join(subdir, file_path_str)
                     group_result = ResultsObject(group_file)
                     group_result.read_gene_ps_consensus_file()
-                    print("\n# Analyzing {} - containing {} files\n"
+                    print("\n# Analyzing {} - containing {} files"
                           .format(group_result.group_name, group_result.group_size))
                     # all consensus of a folder
                     header_cons = group_result.consensus.keys()
@@ -154,6 +152,7 @@ if __name__ == "__main__":
                     blast_obj = run_tblastn(db_path, group_cons)
                     blast_obj.infer_regions()
                     for query, contig_regions in blast_obj.inferred_regions.items():
+                        print("\n### " + query + "\n")
                         single_cons = os.path.join(tmp_dir, query)
                         single_cons = group_result.consensus_to_fa(query, single_cons)
                         hmm_file = group_result.phmm[query]
@@ -165,19 +164,26 @@ if __name__ == "__main__":
                                         score = score_prediction(exo_obj, hmm_file)
                                         score_valid = judge_score(group_result.score_list[query], score)
                                     except ExonerateError:
-                                        print("[!] NO EXONERATE PREDICTION {}, {}, {}\t"
-                                              .format(query, region.contig, region.s_start))
+                                        print("[!] {}, {}, {}, {}\t\t NO EXONERATE PREDICTION"
+                                              .format(query, region.contig, region.s_start, region.s_end))
                                         continue
                                     except ScoreError:
-                                        print("[!] {}, {}, {}\t filtered by score"
-                                              .format(query, region.contig, region.s_start))
+                                        print("[!] {}, {}, {}, {}\t\t filtered by HMM-score"
+                                              .format(query, region.contig, region.s_start, region.s_end))
                                         continue
-                                    print("[+] {}, {}, {}\t FOUND".format(query, region.contig, region.s_start))
+                                    print("[+] {}, {}, {}, {}\t\t PASSED".format(query, region.contig, region.s_start, region.s_end))
+                                    print(grap_values(exo_obj.target_prot)[0])
+                                    '''
+                                    test_Regobj = RegionObj(region.contig, region.s_start, region.s_end)
+                                    for reg in true_coordinates_hash[query]:
+                                        if reg.contains(test_Regobj):
+                                            print("\tfits existing model: {}, {}, {}".format(reg.chrom, reg.start, reg.end))
+                                            print("\toverlap: ", reg.get_overlap_length(test_Regobj))
                                     group_result.exonerate_out[query].append(exo_obj)
                                     #print(query)
                                     #print(grap_values(exo_obj.target_prot)[0])
                     # print(group_result.group_name)
-                    # print((len(group_result.exonerate_out) / group_result.group_size) * 100)
+                    # print((len(group_result.exonerate_out) / group_result.group_size) * 100)'''
             print("\n")
 
 

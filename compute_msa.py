@@ -53,7 +53,7 @@ class MsaObject:
         self.lengths.append(len(self.msa_list[1]))
         self.msa_to_fasta()
 
-    def re_aligne(self, fasta_hash):
+    def re_align_to_fasta(self, fasta_hash):
         header_list = self.all_header()
         string_list = []
         for header in header_list:
@@ -65,7 +65,7 @@ class MsaObject:
         self.msa_list = generate_msa(self.path)
         self.size.append(len(self.msa_list)/2)
         self.lengths.append(len(self.msa_list[1]))
-        return self.msa_list
+        self.msa_to_fasta()
 
     def all_header(self):
         return [self.msa_list[x] for x in range(0, len(self.msa_list), 2)]

@@ -72,4 +72,4 @@ Gene, family name,  Contig,  start,  end,  status (whether it passed all filteri
 
 [+] eef_all_proteins_of_proteom_test, I, 9158949, 9171695                PASSED
 
-For all passed and filtered Predictions, a fasta-file as wel as a gff-file will be generated saved to a newly created "Prediction"-folder within the original output directory.
+For all passed and filtered Predictions of a gene family, a fasta-file as wel as a gff-file will be generated and saved to a newly created "Prediction"-folder within the original output directory.

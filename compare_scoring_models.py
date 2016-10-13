@@ -87,11 +87,13 @@ def compare_models(runs, interval):
     while counter <= runs:
         add_random_proteins(interval)
         try:
+            print("\nBulk scoring")
             single_hmm_scores = bulk_hmm_scoring_model()
             single_hmm_mean = round(sum(single_hmm_scores) / len(single_hmm_scores))
         except TypeError:
             single_hmm_mean = None
         try:
+            print("\nIterative scoring\n")
             multiple_hmm_scores = iterative_scoring_model()
             multiple_hmm_mean = round(sum(multiple_hmm_scores) / len(multiple_hmm_scores))
         except TypeError:
@@ -134,8 +136,7 @@ if __name__ == "__main__":
     iterations = int(args['--iterations'])
     repeat_limit = int(args['--repeat_limit'])
     out_dir = args['--output_path']
-    out_name = out_dir + ".pdf"
-
+    out_file = open(out_dir + ".txt", "w")
     # iterations = how often gets the dataset enlarged
     # number_prot = number of proteins added to the dataset per iteration
     # iterations * numbers = total amount of protein seq
@@ -156,6 +157,7 @@ if __name__ == "__main__":
     iter_av_list = []
     while repeat_step <= repeat_limit:
         av_single_hmm, av_multiple_hmm = compare_models(iterations, number_prot)
+        print("{} round of {}". format(str(repeat_step), str(repeat_limit)))
         print(av_single_hmm)
         print(av_multiple_hmm)
         bulk_av_list.append(av_single_hmm)
@@ -164,15 +166,16 @@ if __name__ == "__main__":
         repeat_step += 1
 
     bulk_results = make_array(bulk_av_list)
+    out_file.write(bulk_results)
     bulk_min = apply_function_on_list_in_array(bulk_results, min)
     bulk_max = apply_function_on_list_in_array(bulk_results, max)
     bulk_mean = apply_function_on_list_in_array(bulk_results, mean_list)
-
+    out_file.write("\niterational results\n")
     iter_results = make_array(iter_av_list)
     iter_min = apply_function_on_list_in_array(iter_results, min)
     iter_max = apply_function_on_list_in_array(iter_results, max)
     iter_mean = apply_function_on_list_in_array(iter_results, mean_list)
-    print(iter_mean)
+    out_file.write(iter_results)
 
     plt.plot(x_axis, bulk_mean, color="b", label="Bulk HMM-Scoring")
     plt.fill_between(x_axis, bulk_min, bulk_max, facecolor="lightskyblue")
@@ -183,6 +186,6 @@ if __name__ == "__main__":
     plt.ylabel("Score Size", size=14)
     plt.xlabel("Number of Protein Sequences", size=14)
     plt.legend()
-    plt.savefig(out_name)
+    plt.savefig(out_dir + ".pdf")
     plt.show()
 

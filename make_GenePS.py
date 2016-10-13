@@ -102,14 +102,14 @@ def hash_fasta(fasta_file):
 
 
 def check_for_sufficient_taxa(fasta_dict):
-    if len(fasta_dict) <= 4:
+    if len(fasta_dict) <= 2:
         raise InputFileError
     else:
         pass
 
 
 def check_size_len_after_trimal(trimmed_msa):
-    if trimmed_msa.size[-1] < 4 \
+    if trimmed_msa.size[-1] < 2 \
             or ((trimmed_msa.size[0] - trimmed_msa.size[-1]) / trimmed_msa.size[0]) > 50:
         raise MsaSizeError
 

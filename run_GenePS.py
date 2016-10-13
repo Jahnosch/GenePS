@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Usage: run_GenePS.py                          -m <DIR> -g <FILE>
+Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>]
 
     Options:
         -h, --help                            show this screen.
@@ -9,6 +9,8 @@ Usage: run_GenePS.py                          -m <DIR> -g <FILE>
         General
         -m, --GenePS_result_dir <DIR>         folder with consensus/score results from make_GenePS.py
         -g, --genome <FILE>                   Target genome
+        Optional
+        -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome (used to filter Blast hits)
 
 '''
 
@@ -47,8 +49,15 @@ def judge_score(list_scores, phmm_score):
 def coverage_filter(area):
     if area.chunk_cov == 100 and area.query_cov < 40:
         return False
-    elif area.chunk_cov > 30:
+    elif area.chunk_cov > coverage_min:
         return True
+
+
+def number_blast_regions(query_blast_out):
+    sum_region = 0
+    for contig_summary, regions_of_contig in query_blast_out.items():
+        sum_region += len(regions_of_contig)
+    return sum_region
 
 
 def score_prediction(ex_obj, hmm):
@@ -125,6 +134,9 @@ if __name__ == "__main__":
     args = docopt(__doc__)
     gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
     genome = args['--genome']
+    coverage_min = int(args['--coverage_filer'])
+    if coverage_min is None:
+        coverage_min = 30
     check_programs("tblastn", "makeblastdb", "exonerate")
 
     out_dir = get_outdir(gene_ps_results, add_dir="Predictions")
@@ -152,7 +164,7 @@ if __name__ == "__main__":
                     blast_obj = run_tblastn(db_path, group_cons)
                     blast_obj.infer_regions()
                     for query, contig_regions in blast_obj.inferred_regions.items():
-                        print("\n### " + query + "\n")
+                        print("\n### {} - {} potential regions identified\n".format(query, number_blast_regions(contig_regions)))
                         single_cons = os.path.join(tmp_dir, query)
                         single_cons = group_result.consensus_to_fa(query, single_cons)
                         hmm_file = group_result.phmm[query]

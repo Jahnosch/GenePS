@@ -2,19 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="..">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compute_msa.py" afterPath="$PROJECT_DIR$/compute_msa.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_regions.py" afterPath="$PROJECT_DIR$/find_regions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compare_scoring_models.py" afterPath="$PROJECT_DIR$/compare_scoring_models.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/make_GenePS.py" afterPath="$PROJECT_DIR$/make_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/requirements.txt" afterPath="$PROJECT_DIR$/requirements.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_data/group1/eef_test.chmm" afterPath="$PROJECT_DIR$/test_data/group1/eef_test.chmm" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_data/group1/eef_test.hmmGenePS" afterPath="$PROJECT_DIR$/test_data/group1/eef_test.hmmGenePS" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_data/group1/eef_test.msaGenePS" afterPath="$PROJECT_DIR$/test_data/group1/eef_test.msaGenePS" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="$PROJECT_DIR$/test_make_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="$PROJECT_DIR$/test_run_GenePS.py" />
     </list>
     <ignored path="GenePS.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,8 +29,8 @@
       <file leaf-file-name="make_GenePS.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/make_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="16" column="108" selection-start-line="12" selection-start-column="7" selection-end-line="16" selection-end-column="108" />
+            <state relative-caret-position="108">
+              <caret line="6" column="98" selection-start-line="6" selection-start-column="87" selection-end-line="6" selection-end-column="98" />
               <folding>
                 <element signature="e#822#831#0" expanded="true" />
               </folding>
@@ -49,8 +41,8 @@
       <file leaf-file-name="compare_scoring_models.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compare_scoring_models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="66" column="0" selection-start-line="66" selection-start-column="0" selection-end-line="79" selection-end-column="33" />
+            <state relative-caret-position="1710">
+              <caret line="95" column="42" selection-start-line="95" selection-start-column="42" selection-end-line="95" selection-end-column="42" />
               <folding>
                 <element signature="e#721#752#0" expanded="true" />
               </folding>
@@ -85,12 +77,12 @@
       <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="575">
-              <caret line="187" column="0" selection-start-line="187" selection-start-column="0" selection-end-line="187" selection-end-column="0" />
+            <state relative-caret-position="216">
+              <caret line="12" column="134" selection-start-line="11" selection-start-column="1" selection-end-line="12" selection-end-column="134" />
               <folding>
-                <element signature="e#356#365#0" expanded="true" />
-                <element signature="e#2573#2899#1" expanded="false" />
-                <element signature="e#3749#3997#1" expanded="false" />
+                <element signature="e#519#528#0" expanded="true" />
+                <element signature="e#2947#3273#1" expanded="false" />
+                <element signature="e#4123#4371#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -99,8 +91,8 @@
       <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-342">
-              <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+            <state relative-caret-position="-43">
+              <caret line="37" column="78" selection-start-line="37" selection-start-column="78" selection-end-line="37" selection-end-column="78" />
               <folding />
             </state>
           </provider>
@@ -646,9 +638,9 @@
         <state relative-caret-position="0">
           <caret line="176" column="37" selection-start-line="176" selection-start-column="37" selection-end-line="176" selection-end-column="37" />
           <folding>
-            <element signature="e#356#365#0" expanded="true" />
-            <element signature="e#2573#2899#1" expanded="false" />
-            <element signature="e#3749#3997#1" expanded="false" />
+            <element signature="e#519#528#0" expanded="true" />
+            <element signature="e#2947#3273#1" expanded="false" />
+            <element signature="e#4123#4371#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -708,9 +700,9 @@
         <state relative-caret-position="0">
           <caret line="176" column="37" selection-start-line="176" selection-start-column="37" selection-end-line="176" selection-end-column="37" />
           <folding>
-            <element signature="e#356#365#0" expanded="true" />
-            <element signature="e#2573#2899#1" expanded="false" />
-            <element signature="e#3749#3997#1" expanded="false" />
+            <element signature="e#519#528#0" expanded="true" />
+            <element signature="e#2947#3273#1" expanded="false" />
+            <element signature="e#4123#4371#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -817,9 +809,9 @@
         <state relative-caret-position="0">
           <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
           <folding>
-            <element signature="e#356#365#0" expanded="true" />
-            <element signature="e#2573#2899#1" expanded="false" />
-            <element signature="e#3749#3997#1" expanded="false" />
+            <element signature="e#519#528#0" expanded="true" />
+            <element signature="e#2947#3273#1" expanded="false" />
+            <element signature="e#4123#4371#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -899,9 +891,9 @@
         <state relative-caret-position="0">
           <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
           <folding>
-            <element signature="e#356#365#0" expanded="true" />
-            <element signature="e#2573#2899#1" expanded="false" />
-            <element signature="e#3749#3997#1" expanded="false" />
+            <element signature="e#519#528#0" expanded="true" />
+            <element signature="e#2947#3273#1" expanded="false" />
+            <element signature="e#4123#4371#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1061,26 +1053,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/compare_scoring_models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="66" column="0" selection-start-line="66" selection-start-column="0" selection-end-line="79" selection-end-column="33" />
-          <folding>
-            <element signature="e#721#752#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/make_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="16" column="108" selection-start-line="12" selection-start-column="7" selection-end-line="16" selection-end-column="108" />
-          <folding>
-            <element signature="e#822#831#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/check_accuracy.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="612">
@@ -1089,22 +1061,42 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/make_GenePS.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="6" column="98" selection-start-line="6" selection-start-column="87" selection-end-line="6" selection-end-column="98" />
+          <folding>
+            <element signature="e#822#831#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/compare_scoring_models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1710">
+          <caret line="95" column="42" selection-start-line="95" selection-start-column="42" selection-end-line="95" selection-end-column="42" />
+          <folding>
+            <element signature="e#721#752#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="575">
-          <caret line="187" column="0" selection-start-line="187" selection-start-column="0" selection-end-line="187" selection-end-column="0" />
+        <state relative-caret-position="216">
+          <caret line="12" column="134" selection-start-line="11" selection-start-column="1" selection-end-line="12" selection-end-column="134" />
           <folding>
-            <element signature="e#356#365#0" expanded="true" />
-            <element signature="e#2573#2899#1" expanded="false" />
-            <element signature="e#3749#3997#1" expanded="false" />
+            <element signature="e#519#528#0" expanded="true" />
+            <element signature="e#2947#3273#1" expanded="false" />
+            <element signature="e#4123#4371#1" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-342">
-          <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+        <state relative-caret-position="-43">
+          <caret line="37" column="78" selection-start-line="37" selection-start-column="78" selection-end-line="37" selection-end-column="78" />
           <folding />
         </state>
       </provider>

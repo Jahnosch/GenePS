@@ -66,8 +66,8 @@ makeGenePS files in the specified folder. You also need to tell GenePS the path 
 provided as a fasta file. GenePS takes care of generating a genome Blast database.
 The Prediction will then be printed to a the screen in style of:
 
-# Gene family name # Contig # start # end # status (whether it passed all filtering steps)
-# Predicted Protein Sequence
+Gene family name  Contig  start  end  status (whether it passed all filtering steps)
+Predicted Protein Sequence
 
 Example Output
 

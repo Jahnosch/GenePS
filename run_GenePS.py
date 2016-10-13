@@ -178,9 +178,9 @@ if __name__ == "__main__":
                         # writing to cluster specific output
                         cluster_spec_dir = os.path.join(out_dir, query)
                         cluster_passed_fasta = open(cluster_spec_dir + "_PASSED.fa", "w")
-                        cluster_passed_fasta.write("# confidence interval {}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
+                        cluster_passed_fasta.write("# confidence interval:{}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
                         cluster_filtered_fasta = open(cluster_spec_dir + "_FILTERED.fa", "w")
-                        cluster_filtered_fasta.write("# confidence interval {}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
+                        cluster_filtered_fasta.write("# confidence interval:{}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
                         cluster_passed_gff = open(cluster_spec_dir + "_PASSED.gff", "w")
                         cluster_filtered_gff = open(cluster_spec_dir + "_FILTERED.gff", "w")
 
@@ -199,14 +199,14 @@ if __name__ == "__main__":
                                     if valid is False:
                                         print("[!] {}, {}, {}, {}\t\t Filtered by HMM-score"
                                               .format(query, region.contig, region.s_start, region.s_end))
-                                        cluster_filtered_fasta.write(">{} {};{}-{} HMM_score: {} Adjusted_Score: {}\n"
+                                        cluster_filtered_fasta.write(">{} {};{}-{} HMM_score:{} Adjusted_Score:{}\n"
                                                                      .format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"]))
                                         cluster_filtered_fasta.write(grap_values(exo_obj.target_prot)[0] + "\n")
                                         cluster_filtered_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")
                                         continue
                                     # Passed
                                     print("[+] {}, {}, {}, {}\t\t PASSED".format(query, region.contig, region.s_start, region.s_end))
-                                    cluster_passed_fasta.write(">{} {};{}-{} HMM_score: {} Adjusted_Score: {}\n"
+                                    cluster_passed_fasta.write(">{} {};{}-{} HMM_score:{} Adjusted_Score:{}\n"
                                                                .format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"]))
                                     cluster_passed_fasta.write(grap_values(exo_obj.target_prot)[0] + "\n")
                                     cluster_passed_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")

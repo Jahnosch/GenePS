@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>]
+Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-f <INT>]
 
     Options:
         -h, --help                            show this screen.
@@ -11,6 +11,7 @@ Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>]
         -g, --genome <FILE>                   Target genome
         Optional
         -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome (used to filter Blast hits)
+        -f, --HMM_filter <INT>                Factor to multiply standard deviation of the HMM score distribution with (validate predictions)
 
 '''
 
@@ -31,19 +32,13 @@ class ExonerateError(Exception):
     pass
 
 
-class ScoreError(Exception):
-    pass
-
-
-def judge_score(list_scores, phmm_score):
-    average = mean(list_scores)
-    conf_inter = (average - stdev(list_scores),
-                  average + stdev(list_scores))
-    adj_average = round((average + phmm_score) / 2, 2)
-    if conf_inter[0] < adj_average < conf_inter[1]:
-        return {"aver": average, "conf_int": conf_inter, "adj_aver": adj_average}
+def judge_score(phmm_score):
+    adj_average = round((score_mean + phmm_score) / 2, 2)
+    print("\nPrediction Score: {}; Adjusted score {}".format(str(phmm_score), str(adj_average)))
+    if confidence_inter[0] < adj_average:
+        return True, {"prediction": phmm_score, "confidence": confidence_inter, "adj_mean": adj_average}
     else:
-        raise ScoreError
+        return False, {"prediction": phmm_score, "confidence": confidence_inter, "adj_mean": adj_average}
 
 
 def coverage_filter(area):
@@ -134,9 +129,17 @@ if __name__ == "__main__":
     args = docopt(__doc__)
     gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
     genome = args['--genome']
-    coverage_min = int(args['--coverage_filer'])
+    coverage_min = args['--coverage_filer']
+    std_multip = args['--HMM_filter']
     if coverage_min is None:
         coverage_min = 30
+    else:
+        coverage_min = int(coverage_min)
+    if std_multip is None:
+        std_multip = 2
+    else:
+        std_multip = int(std_multip)
+
     check_programs("tblastn", "makeblastdb", "exonerate")
 
     out_dir = get_outdir(gene_ps_results, add_dir="Predictions")
@@ -158,7 +161,7 @@ if __name__ == "__main__":
                           .format(group_result.group_name, group_result.group_size))
                     # all consensus of a folder
                     header_cons = group_result.consensus.keys()
-                    group_cons = os.path.join(out_dir, group_result.group_name)
+                    group_cons = os.path.join(tmp_dir, group_result.group_name)
                     group_cons = group_result.consensus_to_fa(header_cons, group_cons)
                     # run t-blastn
                     blast_obj = run_tblastn(db_path, group_cons)
@@ -167,35 +170,62 @@ if __name__ == "__main__":
                         print("\n### {} - {} potential regions identified\n".format(query, number_blast_regions(contig_regions)))
                         single_cons = os.path.join(tmp_dir, query)
                         single_cons = group_result.consensus_to_fa(query, single_cons)
-                        hmm_file = group_result.phmm[query]
+                        score_list = group_result.score_list[query]
+                        score_mean, score_std = mean(score_list), stdev(score_list)
+                        confidence_inter = (score_mean - (std_multip * score_std), score_mean + (std_multip * score_std))
+                        print("### Confidence Interval {} - {} \n".format(round(confidence_inter[0]), round(confidence_inter[1])))
+
+                        # writing to cluster specific output
+                        cluster_spec_dir = os.path.join(out_dir, query)
+                        cluster_passed_fasta = open(cluster_spec_dir + "_PASSED.fa", "w")
+                        cluster_passed_fasta.write("# confidence interval {}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
+                        cluster_filtered_fasta = open(cluster_spec_dir + "_FILTERED.fa", "w")
+                        cluster_filtered_fasta.write("# confidence interval {}-{}\n".format(round(confidence_inter[0]), round(confidence_inter[1])))
+                        cluster_passed_gff = open(cluster_spec_dir + "_PASSED.gff", "w")
+                        cluster_filtered_gff = open(cluster_spec_dir + "_FILTERED.gff", "w")
+
                         for contig_regions in contig_regions.values():
                             for region in contig_regions:
                                 if coverage_filter(region) is True:
                                     try:
                                         exo_obj = make_prediction(query, single_cons, tmp_dir, region, db_path)
-                                        score = score_prediction(exo_obj, hmm_file)
-                                        score_valid = judge_score(group_result.score_list[query], score)
+                                        score = score_prediction(exo_obj, group_result.phmm[query])
                                     except ExonerateError:
                                         print("[!] {}, {}, {}, {}\t\t NO EXONERATE PREDICTION"
                                               .format(query, region.contig, region.s_start, region.s_end))
                                         continue
-                                    except ScoreError:
-                                        print("[!] {}, {}, {}, {}\t\t filtered by HMM-score"
+                                    # HMM filter
+                                    valid, adj_score = judge_score(score)
+                                    if valid is False:
+                                        print("[!] {}, {}, {}, {}\t\t Filtered by HMM-score"
                                               .format(query, region.contig, region.s_start, region.s_end))
+                                        cluster_filtered_fasta.write(">{} {};{}-{} HMM_score: {} Adjusted_Score: {}\n"
+                                                                     .format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"]))
+                                        cluster_filtered_fasta.write(grap_values(exo_obj.target_prot)[0] + "\n")
+                                        cluster_filtered_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")
                                         continue
+                                    # Passed
                                     print("[+] {}, {}, {}, {}\t\t PASSED".format(query, region.contig, region.s_start, region.s_end))
-                                    print(grap_values(exo_obj.target_prot)[0])
-                                    '''
-                                    test_Regobj = RegionObj(region.contig, region.s_start, region.s_end)
-                                    for reg in true_coordinates_hash[query]:
-                                        if reg.contains(test_Regobj):
-                                            print("\tfits existing model: {}, {}, {}".format(reg.chrom, reg.start, reg.end))
-                                            print("\toverlap: ", reg.get_overlap_length(test_Regobj))
-                                    group_result.exonerate_out[query].append(exo_obj)
-                                    #print(query)
-                                    #print(grap_values(exo_obj.target_prot)[0])
-                    # print(group_result.group_name)
-                    # print((len(group_result.exonerate_out) / group_result.group_size) * 100)'''
+                                    cluster_passed_fasta.write(">{} {};{}-{} HMM_score: {} Adjusted_Score: {}\n"
+                                                               .format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"]))
+                                    cluster_passed_fasta.write(grap_values(exo_obj.target_prot)[0] + "\n")
+                                    cluster_passed_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")
+                        cluster_passed_fasta.close()
+                        cluster_passed_gff.close()
+                        cluster_filtered_fasta.close()
+                        cluster_filtered_gff.close()
+
+                    '''
+                    test_Regobj = RegionObj(region.contig, region.s_start, region.s_end)
+                    for reg in true_coordinates_hash[query]:
+                        if reg.contains(test_Regobj):
+                            print("\tfits existing model: {}, {}, {}".format(reg.chrom, reg.start, reg.end))
+                            print("\toverlap: ", reg.get_overlap_length(test_Regobj))
+                    group_result.exonerate_out[query].append(exo_obj)
+                    #print(query)
+                    #print(grap_values(exo_obj.target_prot)[0])
+    # print(group_result.group_name)
+    # print((len(group_result.exonerate_out) / group_result.group_size) * 100)'''
             print("\n")
 
 

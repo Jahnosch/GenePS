@@ -142,6 +142,7 @@ def get_phmm_score(hmm_file, query_file, test_this_function=None):
         command = test_this_function
     read_count = 0
     score_list = []
+    # store_interdata = open(os.path.join(output_dir, "postives.fa"), "w")
     for line in run_cmd(command=command, wait=False):
         if "E-value" in line or read_count == 1:
             read_count += 1
@@ -149,6 +150,8 @@ def get_phmm_score(hmm_file, query_file, test_this_function=None):
             line = line.strip("\n").split()     # line[8] is protein name
             if len(line) > 0:
                 try:
+                    # print("{}\t{}\t{}".format(line[8], line[1], str(len(all_proteins[">"+line[8]][0]))))
+                    # store_interdata.write("{}\t{}\t{}\n".format(line[8], line[1], str(len(all_proteins[">"+line[8]][0]))))
                     score_list.append(round(float(line[1])))
                 except ValueError:
                     print("VALUE ERROR")
@@ -247,16 +250,13 @@ def blast_prot_id_hits(blast_file):
     return protid_hits_hash
 
 
-def twin_hmm_score(header, seq, hmm):
+def twin_hmm_scores(tn_fasta_list, hmm):
     """Hmm score against the "real" cluster pHMM"""
-    fasta_str = header + "\n" + seq
-    with tmp.NamedTemporaryFile() as temp:
-        write_to_tempfile(temp.name, fasta_str)
-        try:
-            tn_score = get_phmm_score(hmm, temp.name)
-        except IndexError:
-            return None
-    return tn_score
+    tn_fasta_str = "\n".join(tn_fasta_list)
+    with tmp.NamedTemporaryFile() as tn_temp:
+        write_to_tempfile(tn_temp.name, tn_fasta_str)
+        tn_scores = get_phmm_score(hmm, tn_temp.name)
+    return tn_scores
 
 
 def get_next_best(forbidden, self_hits):
@@ -272,7 +272,7 @@ def get_twin_file_scores(cluster_file, cluster_hmm_path, forbidden_proteins_file
     """give the next best blast hits for protein in the cluster-file. Needs a global dict(dict(list))"""
 
     # hash all files
-    all_proteins = hash_fasta(all_cluster_all_protein)
+    # all_proteins = hash_fasta(all_cluster_all_protein)
     idPair_2_namePair, namePair_2_idPair = hash_translator(translation_file)
     infile_specID_protList = make_cluster_name_to_id_hash(cluster_file, idPair_2_namePair)
     forbidden_specID_protList = make_cluster_name_to_id_hash(forbidden_proteins_file, idPair_2_namePair)
@@ -280,7 +280,6 @@ def get_twin_file_scores(cluster_file, cluster_hmm_path, forbidden_proteins_file
 
     # generate fasta_string
     results_fasta = []
-    results_score = []
     for species_id, prot_list in infile_specID_protList.items():
         b_file_name = "Blast{}_{}.txt".format(species_id, species_id)
         if b_file_name in blast_file_set:
@@ -301,9 +300,7 @@ def get_twin_file_scores(cluster_file, cluster_hmm_path, forbidden_proteins_file
                             continue
                         results_fasta.append(name_pair)
                         results_fasta.append(sequence)
-                        tn_score = twin_hmm_score(name_pair, sequence, cluster_hmm_path)
-                        if tn_score is not None:
-                            results_score.append(tn_score)
+    results_score = twin_hmm_scores(results_fasta, cluster_hmm_path)
     return "\n".join(results_fasta), results_score
 
 
@@ -352,7 +349,6 @@ class ScoreObject:
         return "\n".join(list_msa)
 
     def iterative_score_computation(self):
-        score_dict = {}
         for idx in range(0, len(self.left_taxa)):
             rest_prot = self.left_taxa[:]
             query = rest_prot.pop(idx)
@@ -367,17 +363,7 @@ class ScoreObject:
                             score = get_phmm_score(hmm_tmp.name, q_tmp.name)[0]
                         except IndexError:
                             continue
-        #    score_dict[query] = int(score)
             self.score_list.append(int(score))
-       # sorted_dict = sorted(score_dict.items(), key=operator.itemgetter(1))
-       # unique_species = set([])
-       # for x in sorted_dict:
-           # species = x[0].split(".")[0]
-           # if species not in unique_species:
-            #    unique_species.add(species)
-                #print(x[0], ",", x[1])
-            #else:
-                #print(x[0], ",", x[1], ",\t X")
         return self.score_list
 
     def compute_full_phmm(self):
@@ -477,6 +463,8 @@ if __name__ == "__main__":
         blast_specID_protID_hitList = defaultdict(lambda: defaultdict(list))
         gather_next_best_scores = []
         gather_intra_cluster_scores = []
+
+        all_proteins = hash_fasta(all_cluster_all_protein)
 
     check_programs("hmmsearch", "hmmemit", "hmmbuild", "mafft", "trimal")
 

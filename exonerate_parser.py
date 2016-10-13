@@ -8,7 +8,7 @@ from run_command import run_cmd
 aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': 'K',
      'Ile': 'I', 'Pro': 'P', 'Thr': 'T', 'Phe': 'F', 'Asn': 'N',
      'Gly': 'G', 'His': 'H', 'Leu': 'L', 'Arg': 'R', 'Trp': 'W', 'Ter':'*',
-     'Ala': 'A', 'Val':'V', 'Glu': 'E', 'Tyr': 'Y', 'Met': 'M','Xaa':'X'}
+     'Ala': 'A', 'Val':'V', 'Glu': 'E', 'Tyr': 'Y', 'Met': 'M','Xaa':'X', 'Unk': 'X'}
 
 
 def aacode_3to1(seq):
@@ -39,6 +39,28 @@ def grap_values(attribute):
         for i, last_value in trange.items():
             out_list.append(last_value)
     return out_list
+
+
+def write_exonerate_gff(gff_list):
+    last_phase = 0
+    new_gff_list = []
+    mrna_copy = None
+    for line in gff_list:
+        line = line.split("\t")
+        if "cds" in line[2]:
+            cds_start = int(line[3])
+            cds_end = int(line[4])
+            current_phase = ((cds_end - cds_start + 1) + last_phase) % 3
+            line[7] = str(last_phase)
+            last_phase = current_phase
+        elif "gene" in line[2]:
+            mrna_copy = line[:]
+            mrna_copy[2] = "mRNA"
+        elif "similarity" in line[2] or "splice" in line[2]:
+            continue
+        new_gff_list.append("\t".join(line))
+    new_gff_list.insert(1, "\t".join(mrna_copy))
+    return new_gff_list
 
 
 class ExonerateObject:
@@ -89,10 +111,10 @@ class ExonerateObject:
                                 read_flag = 0
                     elif read_flag == 3:
                         if not line.startswith("#"):
-                            line = line.strip("\n").split("\t")[2:7]
-                            line.pop(3)
+                            line = line.strip("\n")
                             self.gff[target][trange].append(line)
                         elif "END OF GFF DUMP" in line:
+                            self.gff[target][trange] = write_exonerate_gff(self.gff[target][trange])
                             read_flag = 0
                     else:
                         pass

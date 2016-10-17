@@ -142,7 +142,6 @@ def get_phmm_score(hmm_file, query_file, test_this_function=None):
         command = test_this_function
     read_count = 0
     score_list = []
-    # store_interdata = open(os.path.join(output_dir, "postives.fa"), "w")
     for line in run_cmd(command=command, wait=False):
         if "E-value" in line or read_count == 1:
             read_count += 1
@@ -150,8 +149,6 @@ def get_phmm_score(hmm_file, query_file, test_this_function=None):
             line = line.strip("\n").split()     # line[8] is protein name
             if len(line) > 0:
                 try:
-                    # print("{}\t{}\t{}".format(line[8], line[1], str(len(all_proteins[">"+line[8]][0]))))
-                    # store_interdata.write("{}\t{}\t{}\n".format(line[8], line[1], str(len(all_proteins[">"+line[8]][0]))))
                     score_list.append(round(float(line[1])))
                 except ValueError:
                     print("VALUE ERROR")
@@ -363,7 +360,7 @@ class ScoreObject:
                             score = get_phmm_score(hmm_tmp.name, q_tmp.name)[0]
                         except IndexError:
                             continue
-            self.score_list.append(int(score))
+            self.score_list.append(int(score)) # len
         return self.score_list
 
     def compute_full_phmm(self):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-s <INT>] [-o <DIR>] [-k <STR>]
+Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-s <INT>] [-o <DIR>] [--keep]
 
     Options:
         -h, --help                            show this screen.
@@ -13,7 +13,7 @@ Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-s 
         -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome (used to filter Blast hits)
         -o, --out_dir <DIR>                   Directory for the output files and folders (default: same as input directory)
         -s, --HMM_filter <INT>                Factor to multiply standard deviation of the HMM score distribution with (validate predictions)
-        -k, --keep <STR>                      If "Yes" intermediate files will be stored (default is "No")
+        --keep                                Will store intermediate file (Blast output, merged regions, exonerate output)
 
 '''
 
@@ -268,8 +268,7 @@ if __name__ == "__main__":
     if out_dir is None:
         out_dir = "/".join(gene_ps_results.split("/")[:-1])
     if keep is not None:
-        if keep == "Yes":
-            keep = True
+        keep = True
     if genome.split(".")[-1] == "txt":
         genome_dict = {}
         with open(genome) as g_file:

@@ -33,6 +33,13 @@ def parse_blastdb(db_path, contig, start, end, test_cmd=None):
     return "".join(results)
 
 
+def set_min_start(position):
+    if position < 0:
+        return 1
+    else:
+        return position
+
+
 class HspListObject:
     def __init__(self, subject_hsp_list, merging_dist):
         self.merge_dist = merging_dist
@@ -128,7 +135,7 @@ class BlastObject:
                     chunk_cov = 100  # -> just one start and end pos
                     query_cov = round(((hsp_list[0]["q_end"] - hsp_list[0]["q_start"]) * 100) / hsp_list[0]["q_len"])
                     strand = hsp_list[0]["strand"]
-                    s_start = hsp_list[0]["s_start"] - self.flanking_distance
+                    s_start = set_min_start(hsp_list[0]["s_start"] - self.flanking_distance)
                     s_end = hsp_list[0]["s_end"] + self.flanking_distance
                     region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
                                     chunk_cov=chunk_cov, query_cov=query_cov, q_len = hsp_list[0]["q_len"])
@@ -140,7 +147,7 @@ class BlastObject:
                     for region in idx_all_merged_regions:
                         begin, stop = region[0], region[-1]
                         strand = hits.strand[begin]
-                        s_start = hits.s_start[begin] - self.flanking_distance
+                        s_start = set_min_start(hits.s_start[begin] - self.flanking_distance)
                         s_end = hits.s_end[stop] + self.flanking_distance
                         q_start_pos = hits.q_start[begin:stop+1]
                         q_end_pos = hits.q_end[begin:stop+1]
@@ -198,7 +205,7 @@ if __name__ == "__main__":
     for inferred_region in blast.inferred_regions:
         for contig in blast.inferred_regions[inferred_region]:
             for region in blast.inferred_regions[inferred_region][contig]:
-                print("\t".join([inferred_region, region.contig, region.s_start, region.s_end, region.strand, region.chunk_cov, region.query_cov, region.q_len]))
+                print("\t".join([inferred_region, region.contig, str(region.s_start), str(region.s_end), str(region.strand), str(region.chunk_cov), str(region.query_cov), str(region.q_len)]))
 
     print("# Fields: query acc., subject acc., evalue, q. start, q. end, s. start, s. end, query length, strand")
     for query in blast.blast_out:

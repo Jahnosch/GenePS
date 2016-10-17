@@ -89,6 +89,15 @@ def write_merged_region_to_intermediate(blast_ob):
     return "\n".join(results_list)
 
 
+def write_blast_raw_to_intermediate(blast_ob):
+    results_list = ["# Fields: query acc., subject acc., evalue, q. start, q. end, s. start, s. end, query length, strand"]
+    for query in blast_ob.blast_out:
+        for hsp_list in blast_ob.blast_out[query]:
+            for hsp in blast_ob.blast_out[query][hsp_list]:
+                results_list.append("\t".join([query, hsp["contig"], str(hsp["evalue"]), str(hsp["q_start"]), str(hsp["q_end"]), str(hsp["s_start"]), str(hsp["s_end"]), str(hsp["q_len"]), str(hsp["strand"])]))
+    return "\n".join(results_list)
+
+
 class ResultsObject:
     def __init__(self, make_output):
         self.path = make_output
@@ -141,8 +150,6 @@ class ResultsObject:
 def run_geneps_on_genome():
     with tempdir() as tmp_dir:
         for subdir, dirs, files in os.walk(gene_ps_results):
-            # better than filepathstr.
-            group_number = len([x for x in files if x.split(".")[-1] == "makeGenePS"])
             for file_path_str in files:
                 # file = group of many cluster
                 if file_path_str.split(".")[-1] == "makeGenePS":
@@ -179,10 +186,13 @@ def run_geneps_on_genome():
                     # run t-blastn
                     blast_obj = run_tblastn(db_path, group_cons)
                     blast_obj.infer_regions()
+
                     if keep is True:
-                        keep_merged_regions_file = open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w")
-                        keep_merged_regions_file.write(write_merged_region_to_intermediate(blast_obj))
-                        keep_merged_regions_file.close()
+                        with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w") as merged_regions:
+                            merged_regions.write(write_merged_region_to_intermediate(blast_obj))
+                        with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w") as blast_file:
+                            blast_file.write(write_blast_raw_to_intermediate(blast_obj))
+                        exonerate_file_list = []
 
                     for query, contig_regions in blast_obj.inferred_regions.items():
                         print("\n### {} - {} potential regions identified\n".format(query, number_blast_regions(contig_regions)))
@@ -203,13 +213,15 @@ def run_geneps_on_genome():
                                 if coverage_filter(region) is True:
                                     try:
                                         exo_obj = make_prediction(query, cluster_cons, tmp_dir, region, db_path)
+                                        if keep is True:
+                                            exonerate_file_list.append(exo_obj.path)
                                         score = score_prediction(exo_obj, group_result.phmm[query])
                                     except ExonerateError:
                                         print("[!] {}, {}, {}, {}\t\t NO EXONERATE PREDICTION".format(query, region.contig, region.s_start, region.s_end))
                                         continue
                                     # HMM filter
                                     valid, adj_score = judge_score(score, score_mean, confidence_inter)
-                                    fasta_header = ">Cluster:{} Location:{};{}-{} HMM_score:{} Adjusted_Score:{}\n".format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"])
+                                    fasta_header = ">{} Cluster:{} Location:{};{}-{} HMM_score:{} Adjusted_Score:{}\n".format(g_prefix, query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"])
                                     if valid is False:
                                         print("[!] {}, {}, {}, {}\t\t Filtered by HMM-score".format(query, region.contig, region.s_start, region.s_end))
                                         group_filtered_fasta_protein.write(fasta_header + grap_values(exo_obj.target_prot)[0] + "\n")
@@ -221,13 +233,16 @@ def run_geneps_on_genome():
                                     group_passed_fasta_protein.write(fasta_header + grap_values(exo_obj.target_prot)[0] + "\n")
                                     group_passed_fasta_dna.write(fasta_header + grap_values(exo_obj.target_dna)[0] + "\n")
                                     group_passed_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")
+                    with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_exonerate.txt", "wb") as exo_file:
+                        for exof in exonerate_file_list:
+                            with open(exof, "rb") as infile:
+                                exo_file.write(infile.read())
                     group_passed_fasta_protein.close()
                     group_passed_gff.close()
                     group_passed_fasta_dna.close()
                     group_filtered_fasta_protein.close()
                     group_filtered_gff.close()
                     group_filtered_fasta_dna.close()
-
             print("\n")
 
 

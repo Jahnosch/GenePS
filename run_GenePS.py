@@ -78,6 +78,17 @@ def make_prediction(q_name, cons_file, dir_path, area, blast_db):
         return ex_obj
 
 
+def write_merged_region_to_intermediate(blast_ob):
+    results_list = [
+        "# Merging Distance: {}, Flanking Distance {}".format(blast_ob.merging_distance, blast_ob.flanking_distance),
+        "# Fields: name, contig, subject_start, subject_end, strand, chunk_coverage, total_coverage, query_length"]
+    for inferred_region in blast_ob.inferred_regions:
+        for contig in blast_ob.inferred_regions[inferred_region]:
+            for region in blast_ob.inferred_regions[inferred_region][contig]:
+                results_list.append("\t".join([inferred_region, region.contig, str(region.s_start), str(region.s_end), str(region.strand), str(region.chunk_cov), str(region.query_cov), str(region.q_len)]))
+    return "\n".join(results_list)
+
+
 class ResultsObject:
     def __init__(self, make_output):
         self.path = make_output
@@ -160,14 +171,6 @@ def run_geneps_on_genome():
                     group_filtered_fasta_dna = open(os.path.join(group_specific_dir, genome_group_name) + "_FILTERED_dna.fa", "w")
                     group_filtered_gff = open(os.path.join(group_specific_dir, genome_group_name) + "_FILTERED.gff", "w")
 
-
-                    if keep is True:
-                        keep_blast_file = open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_blast.txt", "w")
-                        keep_merged_regions_file = open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w")
-                        keep_exonerate_file = open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_exonerate.txt", "w")
-                    else:
-                        keep_blast_file, keep_merged_regions_file, keep_merged_regions_file = None, None, None
-
                     # all consensus of a folder/group
                     header_cons = group_result.consensus.keys()
                     group_cons = os.path.join(tmp_dir, group_result.group_name)
@@ -176,6 +179,11 @@ def run_geneps_on_genome():
                     # run t-blastn
                     blast_obj = run_tblastn(db_path, group_cons)
                     blast_obj.infer_regions()
+                    if keep is True:
+                        keep_merged_regions_file = open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w")
+                        keep_merged_regions_file.write(write_merged_region_to_intermediate(blast_obj))
+                        keep_merged_regions_file.close()
+
                     for query, contig_regions in blast_obj.inferred_regions.items():
                         print("\n### {} - {} potential regions identified\n".format(query, number_blast_regions(contig_regions)))
 
@@ -201,7 +209,7 @@ def run_geneps_on_genome():
                                         continue
                                     # HMM filter
                                     valid, adj_score = judge_score(score, score_mean, confidence_inter)
-                                    fasta_header = ">Cluster:{} Locaction:{};{}-{} HMM_score:{} Adjusted_Score:{}\n".format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"])
+                                    fasta_header = ">Cluster:{} Location:{};{}-{} HMM_score:{} Adjusted_Score:{}\n".format(query, region.contig, region.s_start, region.s_end, score, adj_score["adj_mean"])
                                     if valid is False:
                                         print("[!] {}, {}, {}, {}\t\t Filtered by HMM-score".format(query, region.contig, region.s_start, region.s_end))
                                         group_filtered_fasta_protein.write(fasta_header + grap_values(exo_obj.target_prot)[0] + "\n")
@@ -219,6 +227,7 @@ def run_geneps_on_genome():
                     group_filtered_fasta_protein.close()
                     group_filtered_gff.close()
                     group_filtered_fasta_dna.close()
+
             print("\n")
 
 
@@ -243,7 +252,7 @@ if __name__ == "__main__":
     if out_dir is None:
         out_dir = "/".join(gene_ps_results.split("/")[:-1])
     if keep is not None:
-        if keep is "Yes":
+        if keep == "Yes":
             keep = True
     if genome.split(".")[-1] == "txt":
         genome_dict = {}

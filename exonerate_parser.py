@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import os
+import string
 from collections import defaultdict
 from run_command import run_cmd
 
@@ -31,6 +32,9 @@ def remove_non_letter_signs(string):
     '''removes all non-alphabetic letters from string'''
     regex = re.compile('[^a-zA-Z]')
     return regex.sub("", string)
+
+
+remove_lower = lambda text: re.sub('[a-z]', '', text)
 
 
 def grap_values(attribute):
@@ -100,7 +104,7 @@ class ExonerateObject:
                             self.query_prot[target][trange].append(del_intron(remove_non_letter_signs(line)))
                             next(ex)
                             self.target_prot[target][trange].append(remove_non_letter_signs(next(ex)))
-                            self.target_dna[target][trange].append(remove_non_letter_signs(next(ex)).upper())
+                            self.target_dna[target][trange].append(remove_lower(remove_non_letter_signs(next(ex))))
                         else:
                             self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
                             self.target_dna[target][trange] = "".join(self.target_dna[target][trange])
@@ -122,7 +126,7 @@ class ExonerateObject:
 
 def run_exonerate(name, directory, region, query):
     cmd = "exonerate -m p2g:b --softmaskquery no -E yes -Q protein -T dna -n 1 " \
-      "--softmasktarget yes --showvulgar no --minintron 20 --maxintron 50000 " \
+      "--softmasktarget no --showvulgar no --minintron 20 --maxintron 50000 " \
       "--showalignment yes --showtargetgff yes -q {} -t {}".format(query, region)
     with open(os.path.join(directory, name), "w") as ex:
         for line in run_cmd(command=cmd, wait=False):
@@ -135,7 +139,7 @@ if __name__ == "__main__":
                   "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/blast_region.fasta",
                   "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/test_consensus_eef.fa")
 
-    print(grap_values(test.header)[0]["query"])
+    print(grap_values(test.header)[0].values())
     print(grap_values(test.target_prot))
     print(grap_values(test.target_dna))
     print(grap_values(test.query_prot))

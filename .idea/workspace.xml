@@ -6,10 +6,6 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_graph.pdf" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compare_scoring_models.py" afterPath="$PROJECT_DIR$/compare_scoring_models.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/exonerate_parser.py" afterPath="$PROJECT_DIR$/exonerate_parser.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_regions.py" afterPath="$PROJECT_DIR$/find_regions.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
@@ -68,15 +64,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="174" column="0" selection-start-line="174" selection-start-column="0" selection-end-line="174" selection-end-column="0" />
+            <state relative-caret-position="247">
+              <caret line="203" column="40" selection-start-line="203" selection-start-column="40" selection-end-line="203" selection-end-column="40" />
               <folding>
                 <element signature="e#992#1001#0" expanded="true" />
-                <element signature="e#3475#3801#1" expanded="false" />
-                <element signature="e#4651#4899#1" expanded="false" />
+                <element signature="e#4222#4548#1" expanded="false" />
+                <element signature="e#5398#5646#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -97,18 +93,18 @@
       <file leaf-file-name="run_command.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/run_command.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
+            <state relative-caret-position="-153">
               <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/find_regions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="504">
-              <caret line="205" column="76" selection-start-line="205" selection-start-column="76" selection-end-line="205" selection-end-column="76" />
+            <state relative-caret-position="-246">
+              <caret line="163" column="53" selection-start-line="163" selection-start-column="53" selection-end-line="163" selection-end-column="53" />
               <folding />
             </state>
           </provider>
@@ -117,9 +113,11 @@
       <file leaf-file-name="exonerate_parser.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="504">
-              <caret line="102" column="108" selection-start-line="102" selection-start-column="108" selection-end-line="102" selection-end-column="108" />
-              <folding />
+            <state relative-caret-position="330">
+              <caret line="128" column="26" selection-start-line="128" selection-start-column="26" selection-end-line="128" selection-end-column="26" />
+              <folding>
+                <element signature="e#23#32#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -151,10 +149,10 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/run_command.py" />
         <option value="$PROJECT_DIR$/plotting_tn_tp.py" />
-        <option value="$PROJECT_DIR$/exonerate_parser.py" />
         <option value="$PROJECT_DIR$/compare_scoring_models.py" />
-        <option value="$PROJECT_DIR$/run_GenePS.py" />
+        <option value="$PROJECT_DIR$/exonerate_parser.py" />
         <option value="$PROJECT_DIR$/find_regions.py" />
+        <option value="$PROJECT_DIR$/run_GenePS.py" />
       </list>
     </option>
   </component>
@@ -218,29 +216,7 @@
     <property name="settings.editor.selected.configurable" value="configurable.group.editor" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
-  <component name="RunManager" selected="Python.find_regions">
-    <configuration default="false" name="Unittests in test_run_GenePS" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="GenePS" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_run_GenePS.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="true" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="Python.exonerate_parser">
     <configuration default="false" name="testscripts" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -305,6 +281,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="GenePS" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/find_regions.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="exonerate_parser" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GenePS" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/exonerate_parser.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -457,19 +450,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
-      <item index="1" class="java.lang.String" itemvalue="Python.testscripts" />
-      <item index="2" class="java.lang.String" itemvalue="Python.TrueNegative_Twin" />
-      <item index="3" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
-      <item index="4" class="java.lang.String" itemvalue="Python.find_regions" />
+      <item index="0" class="java.lang.String" itemvalue="Python.testscripts" />
+      <item index="1" class="java.lang.String" itemvalue="Python.TrueNegative_Twin" />
+      <item index="2" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
+      <item index="3" class="java.lang.String" itemvalue="Python.find_regions" />
+      <item index="4" class="java.lang.String" itemvalue="Python.exonerate_parser" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.find_regions" />
-        <item index="1" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
-        <item index="2" class="java.lang.String" itemvalue="Python.TrueNegative_Twin" />
-        <item index="3" class="java.lang.String" itemvalue="Python.testscripts" />
-        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
+        <item index="0" class="java.lang.String" itemvalue="Python.exonerate_parser" />
+        <item index="1" class="java.lang.String" itemvalue="Python.find_regions" />
+        <item index="2" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
+        <item index="3" class="java.lang.String" itemvalue="Python.TrueNegative_Twin" />
+        <item index="4" class="java.lang.String" itemvalue="Python.testscripts" />
       </list>
     </recent_temporary>
   </component>
@@ -527,7 +520,7 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11702689" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25101626" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22865854" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30487806" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -592,8 +585,8 @@
           <caret line="176" column="37" selection-start-line="176" selection-start-column="37" selection-end-line="176" selection-end-column="37" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
-            <element signature="e#3475#3801#1" expanded="false" />
-            <element signature="e#4651#4899#1" expanded="false" />
+            <element signature="e#4222#4548#1" expanded="false" />
+            <element signature="e#5398#5646#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -611,7 +604,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="120" column="0" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -632,8 +627,8 @@
           <caret line="176" column="37" selection-start-line="176" selection-start-column="37" selection-end-line="176" selection-end-column="37" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
-            <element signature="e#3475#3801#1" expanded="false" />
-            <element signature="e#4651#4899#1" expanded="false" />
+            <element signature="e#4222#4548#1" expanded="false" />
+            <element signature="e#5398#5646#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -651,7 +646,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -688,7 +685,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -706,8 +705,8 @@
           <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
-            <element signature="e#3475#3801#1" expanded="false" />
-            <element signature="e#4651#4899#1" expanded="false" />
+            <element signature="e#4222#4548#1" expanded="false" />
+            <element signature="e#5398#5646#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -738,7 +737,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -746,7 +747,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -764,8 +767,8 @@
           <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
-            <element signature="e#3475#3801#1" expanded="false" />
-            <element signature="e#4651#4899#1" expanded="false" />
+            <element signature="e#4222#4548#1" expanded="false" />
+            <element signature="e#5398#5646#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -825,7 +828,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -847,14 +852,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1152">
           <caret line="64" column="94" selection-start-line="64" selection-start-column="94" selection-end-line="64" selection-end-column="94" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_command.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -888,31 +885,41 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/find_regions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-246">
+          <caret line="163" column="53" selection-start-line="163" selection-start-column="53" selection-end-line="163" selection-end-column="53" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="102" column="108" selection-start-line="102" selection-start-column="108" selection-end-line="102" selection-end-column="108" />
+        <state relative-caret-position="330">
+          <caret line="128" column="26" selection-start-line="128" selection-start-column="26" selection-end-line="128" selection-end-column="26" />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_command.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-153">
+          <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="174" column="0" selection-start-line="174" selection-start-column="0" selection-end-line="174" selection-end-column="0" />
+        <state relative-caret-position="247">
+          <caret line="203" column="40" selection-start-line="203" selection-start-column="40" selection-end-line="203" selection-end-column="40" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
-            <element signature="e#3475#3801#1" expanded="false" />
-            <element signature="e#4651#4899#1" expanded="false" />
+            <element signature="e#4222#4548#1" expanded="false" />
+            <element signature="e#5398#5646#1" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/find_regions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="205" column="76" selection-start-line="205" selection-start-column="76" selection-end-line="205" selection-end-column="76" />
-          <folding />
         </state>
       </provider>
     </entry>

@@ -193,21 +193,20 @@ if __name__ == "__main__":
     db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/Blast_dbs/c_elegans/c_elegans.PRJNA13758.WS254.genomic.fa"
     query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/test_out/Predictions/group1.consensus"
     blast = run_tblastn(db, query_test)
-    print(len(blast.blast_out["eef_all_proteins_of_proteom_test"]["I"]))
     blast.infer_regions()
-    print(blast.inferred_regions)
-    #for query, subject in blast.inferred_regions.items():
-    #    print(query)
-    #    for subject in subject.values():
-    #        print(subject)
-    #        for region in subject:
-    #            print(region.s_start)
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0])
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0])
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].s_start)
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].s_end)
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].chunk_cov)
-    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].query_cov)
+    print("# Fields: name, contig, subject_start, subject_end, strand, chunk_coverage, total_coverage, query_length")
+    for inferred_region in blast.inferred_regions:
+        for contig in blast.inferred_regions[inferred_region]:
+            for region in blast.inferred_regions[inferred_region][contig]:
+                print("\t".join([inferred_region, region.contig, region.s_start, region.s_end, region.strand, region.chunk_cov, region.query_cov, region.q_len]))
+
+    print("# Fields: query acc., subject acc., evalue, q. start, q. end, s. start, s. end, query length, strand")
+    for query in blast.blast_out:
+        for hsp_list in blast.blast_out[query]:
+            for hsp in blast.blast_out[query][hsp_list]:
+                print("\t".join([query, hsp["contig"], str(hsp["evalue"]), str(hsp["q_start"]), str(hsp["q_end"]), str(hsp["s_start"]), str(hsp["s_end"]), str(hsp["q_len"]), str(hsp["strand"])]))
+
+
 
 
 

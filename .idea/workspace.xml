@@ -6,7 +6,6 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_graph.pdf" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_regions.py" afterPath="$PROJECT_DIR$/find_regions.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
     </list>
     <ignored path="GenePS.iws" />
@@ -63,11 +62,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3793">
-              <caret line="244" column="52" selection-start-line="244" selection-start-column="52" selection-end-line="244" selection-end-column="52" />
+            <state relative-caret-position="-293">
+              <caret line="194" column="22" selection-start-line="194" selection-start-column="22" selection-end-line="194" selection-end-column="22" />
               <folding>
                 <element signature="e#992#1001#0" expanded="true" />
                 <element signature="e#4788#5114#1" expanded="false" />
@@ -99,10 +98,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/find_regions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
+            <state relative-caret-position="-717">
               <caret line="143" column="73" selection-start-line="143" selection-start-column="73" selection-end-line="143" selection-end-column="73" />
               <folding />
             </state>
@@ -150,8 +149,8 @@
         <option value="$PROJECT_DIR$/plotting_tn_tp.py" />
         <option value="$PROJECT_DIR$/compare_scoring_models.py" />
         <option value="$PROJECT_DIR$/exonerate_parser.py" />
-        <option value="$PROJECT_DIR$/run_GenePS.py" />
         <option value="$PROJECT_DIR$/find_regions.py" />
+        <option value="$PROJECT_DIR$/run_GenePS.py" />
       </list>
     </option>
   </component>
@@ -902,23 +901,23 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/find_regions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-717">
+          <caret line="143" column="73" selection-start-line="143" selection-start-column="73" selection-end-line="143" selection-end-column="73" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3793">
-          <caret line="244" column="52" selection-start-line="244" selection-start-column="52" selection-end-line="244" selection-end-column="52" />
+        <state relative-caret-position="-293">
+          <caret line="194" column="22" selection-start-line="194" selection-start-column="22" selection-end-line="194" selection-end-column="22" />
           <folding>
             <element signature="e#992#1001#0" expanded="true" />
             <element signature="e#4788#5114#1" expanded="false" />
             <element signature="e#5964#6212#1" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/find_regions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="143" column="73" selection-start-line="143" selection-start-column="73" selection-end-line="143" selection-end-column="73" />
-          <folding />
         </state>
       </provider>
     </entry>

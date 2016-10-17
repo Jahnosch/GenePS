@@ -192,7 +192,7 @@ def run_geneps_on_genome():
                             merged_regions.write(write_merged_region_to_intermediate(blast_obj))
                         with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_merged_blast_regions.txt", "w") as blast_file:
                             blast_file.write(write_blast_raw_to_intermediate(blast_obj))
-                        exonerate_file_list = []
+                     #   exonerate_file_list = []
 
                     for query, contig_regions in blast_obj.inferred_regions.items():
                         print("\n### {} - {} potential regions identified\n".format(query, number_blast_regions(contig_regions)))
@@ -213,8 +213,8 @@ def run_geneps_on_genome():
                                 if coverage_filter(region) is True:
                                     try:
                                         exo_obj = make_prediction(query, cluster_cons, tmp_dir, region, db_path)
-                                        if keep is True:
-                                            exonerate_file_list.append(exo_obj.path)
+                                        #if keep is True:
+                                         #   exonerate_file_list.append(exo_obj.path)
                                         score = score_prediction(exo_obj, group_result.phmm[query])
                                     except ExonerateError:
                                         print("[!] {}, {}, {}, {}\t\t NO EXONERATE PREDICTION".format(query, region.contig, region.s_start, region.s_end))
@@ -233,10 +233,10 @@ def run_geneps_on_genome():
                                     group_passed_fasta_protein.write(fasta_header + grap_values(exo_obj.target_prot)[0] + "\n")
                                     group_passed_fasta_dna.write(fasta_header + grap_values(exo_obj.target_dna)[0] + "\n")
                                     group_passed_gff.write("\n".join(grap_values(exo_obj.gff)[0]) + "\n")
-                    with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_exonerate.txt", "wb") as exo_file:
-                        for exof in exonerate_file_list:
-                            with open(exof, "rb") as infile:
-                                exo_file.write(infile.read())
+               #     with open(os.path.join(group_specific_dir, genome_group_name) + "_intermediate_exonerate.txt", "wb") as exo_file:
+               #         for exof in exonerate_file_list:
+               #             with open(exof, "rb") as infile:
+               #                 exo_file.write(infile.read())
                     group_passed_fasta_protein.close()
                     group_passed_gff.close()
                     group_passed_fasta_dna.close()

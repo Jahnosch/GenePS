@@ -166,21 +166,22 @@ if __name__ == "__main__":
         repeat_step += 1
 
     bulk_results = make_array(bulk_av_list)
-    out_file.write(bulk_results)
+    [out_file.write(str(x) + "\n") for x in bulk_results]
     bulk_min = apply_function_on_list_in_array(bulk_results, min)
     bulk_max = apply_function_on_list_in_array(bulk_results, max)
     bulk_mean = apply_function_on_list_in_array(bulk_results, mean_list)
-    out_file.write("\niterational results\n")
+    out_file.write("######iterational results\n")
     iter_results = make_array(iter_av_list)
     iter_min = apply_function_on_list_in_array(iter_results, min)
     iter_max = apply_function_on_list_in_array(iter_results, max)
     iter_mean = apply_function_on_list_in_array(iter_results, mean_list)
-    out_file.write(iter_results)
+    [out_file.write(str(x) + "\n") for x in iter_results]
+    out_file.close()
 
     plt.plot(x_axis, bulk_mean, color="b", label="Bulk HMM-Scoring")
-    plt.fill_between(x_axis, bulk_min, bulk_max, facecolor="lightskyblue")
+    plt.fill_between(x_axis, bulk_min, bulk_max, facecolor="LightSkyBlue", alpha=0.5)
     plt.plot(x_axis, iter_mean, color="r", label="Iterative HMM-Scoring")
-    plt.fill_between(x_axis, iter_min, iter_max, facecolor="lightcoral")
+    plt.fill_between(x_axis, iter_min, iter_max, facecolor="Salmon", alpha=0.5)
 
     plt.title("Comparison of Scoring Models", size=18, weight="bold")
     plt.ylabel("Score Size", size=14)

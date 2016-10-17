@@ -100,7 +100,7 @@ class ExonerateObject:
                             self.query_prot[target][trange].append(del_intron(remove_non_letter_signs(line)))
                             next(ex)
                             self.target_prot[target][trange].append(remove_non_letter_signs(next(ex)))
-                            self.target_dna[target][trange].append(remove_non_letter_signs(next(ex)))
+                            self.target_dna[target][trange].append(remove_non_letter_signs(next(ex)).upper())
                         else:
                             self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
                             self.target_dna[target][trange] = "".join(self.target_dna[target][trange])

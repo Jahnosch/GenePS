@@ -153,7 +153,7 @@ class BlastObject:
 
 # since every consensus is know in one file, tblastn should always give a hit
 # just if no consensus hits --> quit entiry analysis
-def run_tblastn(db_path, q_file, test_cmd=None):
+def run_tblastn(db_path, q_file, intermediate_file=None, test_cmd=None):
     if test_cmd is None:
         command =["tblastn", "-query", q_file,"-db", db_path, "-outfmt",
               """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-5"]
@@ -190,10 +190,10 @@ def run_tblastn(db_path, q_file, test_cmd=None):
 
 
 if __name__ == "__main__":
-    db = "/home/jgravemeyer/Dropbox/MSc_project/data/test_out/Predictions/c_elegans.PRJNA13758.WS254.genomic.fa"
-    query_test = "/home/jgravemeyer/Desktop/test_consensus_eef.fa"
+    db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/Blast_dbs/c_elegans/c_elegans.PRJNA13758.WS254.genomic.fa"
+    query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/test_out/Predictions/group1.consensus"
     blast = run_tblastn(db, query_test)
-    print(len(blast.blast_out["20_seqs_eef_test"]["I"]))
+    print(len(blast.blast_out["eef_all_proteins_of_proteom_test"]["I"]))
     blast.infer_regions()
     print(blast.inferred_regions)
     #for query, subject in blast.inferred_regions.items():
@@ -202,12 +202,12 @@ if __name__ == "__main__":
     #        print(subject)
     #        for region in subject:
     #            print(region.s_start)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].contig)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].q_len)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].s_start)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].s_end)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].chunk_cov)
-    print(blast.inferred_regions["20_seqs_eef_test"]["I"][0].query_cov)
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0])
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0])
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].s_start)
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].s_end)
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].chunk_cov)
+    print(blast.inferred_regions["eef_all_proteins_of_proteom_test"]["I"][0].query_cov)
 
 
 

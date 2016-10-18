@@ -17,7 +17,7 @@ Usage: make_GenePS.py                         -i <DIR> -o <DIR> [-b <DIR>] [-t <
         -p, --protein_fasta <FILE>            fasta-file providing all protein sequences with name as header
 
 """
-print("yes")
+
 import os
 import sys
 import tempfile as tmp

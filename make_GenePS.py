@@ -21,7 +21,6 @@ Usage: make_GenePS.py                         -i <DIR> -o <DIR> [-b <DIR>] [-t <
 import os
 import sys
 import tempfile as tmp
-import operator
 from collections import defaultdict
 
 from run_command import run_cmd, tempdir, check_programs
@@ -391,7 +390,7 @@ def main_process(tmp_dir, out_dir, cluster_file, folder, verbose = None):
     """summary of all function needed to process one single file"""
 
     # preparing input file
-    file_name = cluster_file.strip().split(".")[0]
+    file_name = ".".join(cluster_file.strip().split(".")[0:-1])
     file_path = os.path.join(folder, cluster_file)
     print("\tanalyzing:\t {}\n".format(file_name))
     try:
@@ -490,15 +489,17 @@ if __name__ == "__main__":
             results_file.write("#group: {}\n#group_size: {}\n".format(folder_name, str(number_files)))
             # run main function processing each file
             for each_file in file_list:
-                file__name, hmm_path, scores, consensus, TN_scores = main_process(temp_dir, output_dir, each_file, group_folder)
-                results_file.write(">name: {}\n>phmm_dir: {}\n>score_list: {}\n{}\n".format(file__name, hmm_path, scores, consensus))
+                f_name, hmm_path, scores, consensus, TN_scores = main_process(temp_dir, output_dir, each_file, group_folder)
+                results_file.write(">name: {}\n>phmm_dir: {}\n>score_list: {}\n{}\n".format(f_name, hmm_path, scores, consensus))
+                print(TN_scores)
                 if optional_arguments:
                     sns.distplot(scores, hist=False, rug=True, color="r", label="Scores within cluster")
                     sns.distplot(TN_scores, hist=False, rug=True, color="b", label="Scores next best BLAST hits")
                     plt.title("HMM-Score Distributions", size=18, weight="bold")
                     plt.xlabel("Score", size=14)
                     plt.ylabel("Density", size=14)
-                    plt.show()
+                    plt.savefig(output_dir + f_name + ".pdf")
+                    plt.clf()
             counter += 1
             results_file.close()
 

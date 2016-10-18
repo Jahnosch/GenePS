@@ -121,7 +121,7 @@ class ExonerateObject:
                             read_flag = 0
                     else:
                         pass
-
+            ex.seek(0)
 
 def run_exonerate(name, directory, region, query):
     cmd = "exonerate -m p2g:b --softmaskquery no -E yes -Q protein -T dna -n 1 " \

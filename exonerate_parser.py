@@ -29,7 +29,7 @@ in an error
 
 def remove_non_letter_signs(string):
     '''removes all non-alphabetic letters from string'''
-    regex = re.compile('[^a-zA-Z]')
+    regex = re.compile('[^a-zA-Z*]')
     return regex.sub("", string)
 
 

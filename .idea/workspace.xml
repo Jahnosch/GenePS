@@ -6,8 +6,9 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_graph.pdf" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/exonerate_parser.py" afterPath="$PROJECT_DIR$/exonerate_parser.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/make_GenePS.py" afterPath="$PROJECT_DIR$/make_GenePS.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
     </list>
     <ignored path="GenePS.iws" />
@@ -28,11 +29,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="make_GenePS.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="make_GenePS.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/make_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5232">
-              <caret line="440" column="103" selection-start-line="440" selection-start-column="103" selection-end-line="440" selection-end-column="103" />
+            <state relative-caret-position="6452">
+              <caret line="467" column="32" selection-start-line="467" selection-start-column="32" selection-end-line="467" selection-end-column="32" />
               <folding>
                 <element signature="e#822#831#0" expanded="true" />
               </folding>
@@ -67,8 +68,8 @@
       <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4683">
-              <caret line="15" column="123" selection-start-line="15" selection-start-column="123" selection-end-line="15" selection-end-column="123" />
+            <state relative-caret-position="-266">
+              <caret line="272" column="19" selection-start-line="272" selection-start-column="19" selection-end-line="272" selection-end-column="19" />
               <folding>
                 <element signature="e#1007#1016#0" expanded="true" />
                 <element signature="e#4803#5129#1" expanded="false" />
@@ -81,7 +82,7 @@
       <file leaf-file-name="plotting_tn_tp.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/plotting_tn_tp.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1125">
+            <state relative-caret-position="1782">
               <caret line="101" column="49" selection-start-line="101" selection-start-column="49" selection-end-line="101" selection-end-column="49" />
               <folding>
                 <element signature="e#45#55#0" expanded="true" />
@@ -93,7 +94,7 @@
       <file leaf-file-name="run_command.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/run_command.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-153">
+            <state relative-caret-position="126">
               <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
               <folding />
             </state>
@@ -103,19 +104,21 @@
       <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/find_regions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-717">
-              <caret line="143" column="73" selection-start-line="143" selection-start-column="73" selection-end-line="143" selection-end-column="73" />
+            <state relative-caret-position="450">
+              <caret line="173" column="47" selection-start-line="173" selection-start-column="47" selection-end-line="173" selection-end-column="47" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="exonerate_parser.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="exonerate_parser.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="36">
-              <caret line="2" column="9" selection-start-line="2" selection-start-column="9" selection-end-line="2" selection-end-column="9" />
-              <folding />
+            <state relative-caret-position="-1440">
+              <caret line="31" column="33" selection-start-line="31" selection-start-column="33" selection-end-line="31" selection-end-column="33" />
+              <folding>
+                <element signature="e#23#32#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -148,9 +151,9 @@
         <option value="$PROJECT_DIR$/plotting_tn_tp.py" />
         <option value="$PROJECT_DIR$/compare_scoring_models.py" />
         <option value="$PROJECT_DIR$/find_regions.py" />
+        <option value="$PROJECT_DIR$/make_GenePS.py" />
         <option value="$PROJECT_DIR$/run_GenePS.py" />
         <option value="$PROJECT_DIR$/exonerate_parser.py" />
-        <option value="$PROJECT_DIR$/make_GenePS.py" />
       </list>
     </option>
   </component>
@@ -185,7 +188,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -206,6 +208,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -214,7 +217,7 @@
     <property name="settings.editor.selected.configurable" value="configurable.group.editor" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
-  <component name="RunManager" selected="Python.plotting_tn_tp">
+  <component name="RunManager" selected="Python.exonerate_parser">
     <configuration default="false" name="testscripts" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -456,8 +459,8 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
-        <item index="1" class="java.lang.String" itemvalue="Python.exonerate_parser" />
+        <item index="0" class="java.lang.String" itemvalue="Python.exonerate_parser" />
+        <item index="1" class="java.lang.String" itemvalue="Python.plotting_tn_tp" />
         <item index="2" class="java.lang.String" itemvalue="Python.find_regions" />
         <item index="3" class="java.lang.String" itemvalue="Python.TrueNegative_Twin" />
         <item index="4" class="java.lang.String" itemvalue="Python.testscripts" />
@@ -517,8 +520,8 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11702689" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33638212" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1554878" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33638212" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39227644" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -602,7 +605,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="120" column="0" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -642,7 +647,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -679,7 +686,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -729,7 +738,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -737,7 +748,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -816,7 +829,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -841,6 +856,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/plotting_tn_tp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1782">
+          <caret line="101" column="49" selection-start-line="101" selection-start-column="49" selection-end-line="101" selection-end-column="49" />
+          <folding>
+            <element signature="e#45#55#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_command.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/compare_scoring_models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="648">
@@ -851,26 +884,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/run_command.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-153">
-          <caret line="12" column="52" selection-start-line="12" selection-start-column="52" selection-end-line="12" selection-end-column="52" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/find_regions.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-717">
-          <caret line="143" column="73" selection-start-line="143" selection-start-column="73" selection-end-line="143" selection-end-column="73" />
+        <state relative-caret-position="450">
+          <caret line="173" column="47" selection-start-line="173" selection-start-column="47" selection-end-line="173" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4683">
-          <caret line="15" column="123" selection-start-line="15" selection-start-column="123" selection-end-line="15" selection-end-column="123" />
+        <state relative-caret-position="-266">
+          <caret line="272" column="19" selection-start-line="272" selection-start-column="19" selection-end-line="272" selection-end-column="19" />
           <folding>
             <element signature="e#1007#1016#0" expanded="true" />
             <element signature="e#4803#5129#1" expanded="false" />
@@ -879,30 +904,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/plotting_tn_tp.py">
+    <entry file="file://$PROJECT_DIR$/make_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1125">
-          <caret line="101" column="49" selection-start-line="101" selection-start-column="49" selection-end-line="101" selection-end-column="49" />
+        <state relative-caret-position="6452">
+          <caret line="467" column="32" selection-start-line="467" selection-start-column="32" selection-end-line="467" selection-end-column="32" />
           <folding>
-            <element signature="e#45#55#0" expanded="true" />
+            <element signature="e#822#831#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="36">
-          <caret line="2" column="9" selection-start-line="2" selection-start-column="9" selection-end-line="2" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/make_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5232">
-          <caret line="440" column="103" selection-start-line="440" selection-start-column="103" selection-end-line="440" selection-end-column="103" />
+        <state relative-caret-position="-1440">
+          <caret line="31" column="33" selection-start-line="31" selection-start-column="33" selection-end-line="31" selection-end-column="33" />
           <folding>
-            <element signature="e#822#831#0" expanded="true" />
+            <element signature="e#23#32#0" expanded="true" />
           </folding>
         </state>
       </provider>

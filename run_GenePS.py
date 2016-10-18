@@ -267,6 +267,8 @@ if __name__ == "__main__":
         std_multip = int(std_multip)
     if out_dir is None:
         out_dir = "/".join(gene_ps_results.split("/")[:-1])
+    else:
+        out_dir = os.path.abspath(out_dir)
     if keep is not None:
         keep = True
     if genome.split(".")[-1] == "txt":

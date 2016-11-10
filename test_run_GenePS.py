@@ -1,286 +1,180 @@
 #!/usr/bin/env python3
 import unittest
 import os
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from run_command import tempdir
-from run_GenePS import ResultsObject, ExonerateError, ScoreError, judge_score, coverage_filter, score_prediction, \
-    make_prediction
-from find_regions import run_tblastn, parse_blastdb, make_blast_db, BlastObject, HspListObject
-from exonerate_parser import run_exonerate, remove_non_letter_signs, grap_values, aacode_3to1, ExonerateObject
-
+from run_GenePS import Overseer, DataProviderObject, check_arguments, coverage_filter
+from find_regions import read_blast_output, parse_blastdb, make_blast_db, BlastObject, HspListObject
+from exonerate_parser import remove_non_letter_signs, clear_hashed_bases, grap_values, aacode_3to1, ExonerateObject
 
 script_path = os.path.dirname(os.path.realpath(__file__))
-folder_path = os.path.join(script_path, "test_data")
-test_data = os.path.join(folder_path, "group1.makeGenePS")
-test_db = os.path.join(folder_path, "c_elegans.PRJNA13758.WS254.genomic.fa")
+test_data = os.path.join(script_path, "test_data")
 
 
-class TestResultsObject(unittest.TestCase):
+class TestBlastObject(unittest.TestCase):
 
-    group_result = ResultsObject(test_data)
-    group_result.read_gene_ps_consensus_file()
+    blast_file = os.path.join(test_data, "remanei_OG1685.blast")
+    blast = read_blast_output(blast_file, os.path.join(test_data,"c_brenneri.PRJNA20035.WS249.genomic.fa"))
+    blast.infer_regions()
 
-    def test_path(self):
-        self.assertTrue(self.group_result.path == test_data)
+    def test_inferred_regions_single_hsp_in_hsp_list(self):
+        single_hsp_region = self.blast.inferred_regions["Cbre_Contig419"]["OrthologousGroups_I3.5.OGoverlapp.txt"][0]
+        self.assertEqual(single_hsp_region.s_start, 60160)
+        self.assertEqual(single_hsp_region.s_end, 70339)
+        self.assertEqual(single_hsp_region.strand, "+")
+        self.assertEqual(single_hsp_region.chunk_cov, 100)
+        self.assertEqual(single_hsp_region.query_cov, 11)
+        self.assertEqual(single_hsp_region.q_len, 466)
 
-    def test_group(self):
-        self.assertTrue(self.group_result.group_name == "group1")
+    def test_inferred_regions_merging_reverse_compliment(self):
+        single_hsp_region = self.blast.inferred_regions["Cbre_Contig6"]["OrthologousGroups_I3.5.OGoverlapp.txt"][0]
+        self.assertEqual(single_hsp_region.s_start, 1479061)
+        self.assertEqual(single_hsp_region.s_end, 1492025)
+        self.assertEqual(single_hsp_region.strand, "-")
+        self.assertEqual(single_hsp_region.chunk_cov, 82)
+        self.assertEqual(single_hsp_region.query_cov, 82)
+        self.assertEqual(single_hsp_region.q_len, 466)
 
-    def test_group_size(self):
-        self.assertEqual(self.group_result.group_size, 2)
+    def test_inferred_regions_merging_plus_strand(self):
+        single_hsp_region = self.blast.inferred_regions["Cbre_Contig231"]["OrthologousGroups_I3.5.OGoverlapp.txt"][0]
+        self.assertEqual(single_hsp_region.s_start, 10349)
+        self.assertEqual(single_hsp_region.s_end, 24214)
+        self.assertEqual(single_hsp_region.strand, "+")
+        self.assertEqual(single_hsp_region.chunk_cov, 82)
+        self.assertEqual(single_hsp_region.query_cov, 82)
+        self.assertEqual(single_hsp_region.q_len, 466)
 
-    def test_seq_length(self):
-        self.assertEqual(self.group_result.seq_length["20_seqs_eef_test"], 850)
+    def test_unmerged_blast_output(self):
+        single_hsp_region = self.blast.blast_out["Cbre_Contig419"]["OrthologousGroups_I3.5.OGoverlapp.txt"][0]
+        self.assertEqual(single_hsp_region['s_start'], 65160)
+        self.assertEqual(single_hsp_region['s_end'], 65339)
 
-    def test_consensus(self):
-        self.assertEqual(len(self.group_result.consensus["20_seqs_eef_test"]), 850)
+    def test_unmerged_blast_reverse_strand(self):
+        blast = read_blast_output(self.blast_file, "fake_db")
+        single_hsp_region = blast.blast_out["Cbre_Contig6"]["OrthologousGroups_I3.5.OGoverlapp.txt"][0]
+        self.assertLess(single_hsp_region['s_end'], single_hsp_region['s_start'])
 
-    def test_phmm(self):
-        self.assertIn(self.group_result.phmm["20_seqs_eef_test"],
-                      "/home/jgravemeyer/Dropbox/MSc_project/data/test_out/20_seqs_eef_test.hmmGenePS")
+    def test_compare_merged_unmerged_number_regions(self):
+        blast = read_blast_output(self.blast_file, "fake_db")
+        number_unmerged_regions = len(blast.blast_out["Cbre_Contig231"]["OrthologousGroups_I3.5.OGoverlapp.txt"])
+        self.assertEqual(number_unmerged_regions, 4)
+        number_merged_regions = len(self.blast.inferred_regions["Cbre_Contig231"]["OrthologousGroups_I3.5.OGoverlapp.txt"])
+        self.assertEqual(number_merged_regions, 1)
 
-    def test_score_list(self):
-        self.assertListEqual(self.group_result.score_list["20_seqs_eef_test"], [1981, 1808, 1893, 1981, 1981, 1889])
-
-    def test_consensus_to_fa_correct_path(self):
-        group_cons = self.group_result.consensus_to_fa("20_seqs_eef_test", folder_path + "/test")
-        self.assertTrue(os.path.exists(group_cons))
-        os.remove(group_cons)
-
-    def test_consensus_to_fa_correct_header_content(self):
-        header = self.group_result.consensus.keys()
-        group_cons = self.group_result.consensus_to_fa(header, folder_path + "/test")
-        file_list = [line.strip() for line in open(group_cons)]
-        self.assertIn(">20_seqs_eef_test", file_list)
-        os.remove(group_cons)
-
-    def test_consensus_to_fa_correct_size_content(self):
-        header = self.group_result.consensus.keys()
-        group_cons = self.group_result.consensus_to_fa(header, folder_path + "/test")
-        file_list = [line.strip() for line in open(group_cons)]
-        self.assertEqual(len(file_list), 4)
-        os.remove(group_cons)
-
-    def test_consensus_to_fa_correct_seq_content(self):
-        header = self.group_result.consensus.keys()
-        group_cons = self.group_result.consensus_to_fa(header, folder_path + "/test")
-        file_list = [line.strip() for line in open(group_cons)]
-        self.assertEqual(len(file_list[3]) + len(file_list[1]), 1012+850)
-        os.remove(group_cons)
-
-
-class TestBlast(unittest.TestCase):
-
-    test_blast = os.path.join(folder_path, "test_tblastn.out")
-    single_hit_blast = os.path.join(folder_path, "single_hit_test_blast.out")
-
-    def test_make_blast_db(self):
-        db_dir = make_blast_db(test_db, folder_path)
-        self.assertIn(db_dir, test_db)
-
-    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
-    def test_make_blast_db_command(self):
-        with tempdir() as tmp:
-            db_dir = make_blast_db(test_db, tmp)
-            self.assertIn(db_dir, tmp + "/c_elegans.PRJNA13758.WS254.genomic.fa")
-
-    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
-    def test_parse_blast_db_command(self):
-        blast_parse_out = parse_blastdb(test_db, "I", 9158949, 9171695)
-        self.assertIn(">I;9158949-9171695\nAGGAGCA", blast_parse_out)
-
-    def test_parse_blast_db_without_command(self):
-        test_file = os.path.join(folder_path, "blast_region.fasta")
-        command = ["less", test_file]
-        blast_parse_out = parse_blastdb(test_db, "I", 9158949, 9171695, command)
-        self.assertIn(">I;9158949-9171695\nAGGAGCA", blast_parse_out)
-
-    def test_run_tblastn_all_columns_of_row_present(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        self.assertEqual(len(blast_obj.blast_out["20_seqs_eef_test"]["I"][0]), 8)
-
-    def test_run_tblastn_all_rows_of_contig_present(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        self.assertEqual(len(blast_obj.blast_out["20_seqs_eef_test"]["I"]), 6)
-
-    def test_merging_dist_flanking_dist(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        self.assertEqual(blast_obj.flanking_distance, 5000)
-        self.assertEqual(blast_obj.merging_distance, 10000)
-
-    def test_infer_regions_chunck_coverage(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        blast_obj.infer_regions()
-        self.assertEqual(blast_obj.inferred_regions["20_seqs_eef_test"]["I"][1].chunk_cov, 93)
-
-    def test_infer_regions_query_coverage(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        blast_obj.infer_regions()
-        self.assertEqual(blast_obj.inferred_regions["20_seqs_eef_test"]["I"][1].query_cov, 63)
-
-    def test_infer_regions_query_s_start(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        blast_obj.infer_regions()
-        self.assertEqual(blast_obj.inferred_regions["20_seqs_eef_test"]["I"][0].s_start, 9158949)
-
-    def test_infer_regions_single_hit_blast(self):
-        test_cmd = ["less", self.single_hit_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        blast_obj.infer_regions()
-        self.assertEqual(blast_obj.inferred_regions["20_seqs_eef_test"]["I"][0].s_start, 9164821 - 5000)
+    def test_compute_coverage(self):
+        test_obj = HspListObject("fake", "fake")
+        chunk, query = test_obj.compute_coverage([35, 40, 80], [50, 60, 100], 100)
+        self.assertEqual(chunk, 69)
+        self.assertEqual(query, 45)
+        chunk_single, query_single = test_obj.compute_coverage([35], [50], 100)
+        self.assertEqual(chunk_single, 100)
+        self.assertEqual(query_single, 15)
 
 
-class TestHspListObject(unittest.TestCase):
+class TestExonerateObject(unittest.TestCase):
 
-    hsp_list = [{'s_end': 9166695, 's_start': 9164821,
-                 'contig': 'I', 'strand': '+', 'evalue': 0.0, 'q_end': 850, 'q_start': 244, 'q_len': 850},
-                {'s_end': 9164804, 's_start': 9164208,
-                 'contig': 'I', 'strand': '+', 'evalue': 2.18e-99, 'q_end': 253, 'q_start': 73, 'q_len': 850},
-                {'s_end': 9164164, 's_start': 9163949,
-                 'contig': 'I', 'strand': '+', 'evalue': 2.18e-99, 'q_end': 73, 'q_start': 2, 'q_len': 850},
-                {'s_end': 9865045, 's_start': 9864005,
-                 'contig': 'I', 'strand': '+', 'evalue': 2.09e-37, 'q_end': 416, 'q_start': 55, 'q_len': 850},
-                {'s_end': 9863915, 's_start': 9863820,
-                 'contig': 'I', 'strand': '+', 'evalue': 2.09e-37, 'q_end': 41, 'q_start': 10, 'q_len': 850},
-                {'s_end': 9866277, 's_start': 9865864,
-                 'contig': 'I', 'strand': '+', 'evalue': 3.83e-09, 'q_end': 579, 'q_start': 439, 'q_len': 850}]
+    # with hashes in sequence
+    exonerate_file = os.path.join(test_data, "elegans_eef_true.exonerate")
+    exonerate_obj = ExonerateObject(exonerate_file)
+    target_hash = "I;9859005-9873867"
+    target_range_hash = ('4791', '9857')
+    target_prot_hash = exonerate_obj.target_prot[target_hash][target_range_hash]
+    target_dna_hash = exonerate_obj.target_dna[target_hash][target_range_hash]
 
-    def test_merge_regions(self):
-        hits = HspListObject(self.hsp_list, 10000)
-        hits.sort_hsp_list()
-        all_merged_regions = hits.merge_to_region()
-        self.assertListEqual(all_merged_regions, [[0, 1, 2], [3, 4, 5]])
+    # no hashes in sequence
+    target2 = 'I;9159307-9171689'
+    target_range2 = ("819", "10142")
+    target_prot2 = exonerate_obj.target_prot[target2][target_range2]
+    target_dna2 = exonerate_obj.target_dna[target2][target_range2]
 
-    def test_merge_regions_2_single_regions(self):
-        hsp_list_single = [{'s_end': 9166695, 's_start': 9164821,
-                 'contig': 'I', 'strand': '+', 'evalue': 0.0, 'q_end': 850, 'q_start': 244, 'q_len': 850},
-                           {'s_end': 9866277, 's_start': 9865864,
-                 'contig': 'I', 'strand': '+', 'evalue': 3.83e-09, 'q_end': 579, 'q_start': 439, 'q_len': 850}]
-        hits = HspListObject(hsp_list_single, 10000)
-        hits.sort_hsp_list()
-        all_merged_regions = hits.merge_to_region()
-        self.assertListEqual(all_merged_regions, [[0], [1]])
+    def test_target_target_range(self):
+        self.assertIn(self.target_hash, self.exonerate_obj.query_prot)
+        self.assertIn(self.target_range_hash, list(self.exonerate_obj.query_prot[self.target_hash].keys()))
 
-    def test_merge_regions_wrong_strand(self):
-        hsp_list_single = [{'s_end': 9166695, 's_start': 9164821,
-                 'contig': 'I', 'strand': '+', 'evalue': 0.0, 'q_end': 850, 'q_start': 244, 'q_len': 850},
-                {'s_end': 9164804, 's_start': 9164208,
-                 'contig': 'I', 'strand': '-', 'evalue': 2.18e-99, 'q_end': 253, 'q_start': 73, 'q_len': 850}]
-        hits = HspListObject(hsp_list_single, 10000)
-        hits.sort_hsp_list()
-        all_merged_regions = hits.merge_to_region()
-        self.assertNotEqual(all_merged_regions, [[0, 1]])
+    def test_sequences_dividability(self):
+        self.assertEqual(len(self.target_dna_hash) / 3, len(self.target_prot_hash))
+        self.assertEqual(len(self.target_dna2) / 3, len(self.target_prot2))
 
-    def test_merge_regions_merging_distance(self):
-        hsp_list_single = [{'s_end': 9166695, 's_start': 9164821,
-                 'contig': 'I', 'strand': '+', 'evalue': 0.0, 'q_end': 850, 'q_start': 244, 'q_len': 850},
-                {'s_end': 9164804, 's_start': 9164208,
-                 'contig': 'I', 'strand': '-', 'evalue': 2.18e-99, 'q_end': 253, 'q_start': 73, 'q_len': 850}]
-        hits = HspListObject(hsp_list_single, 1)
-        hits.sort_hsp_list()
-        all_merged_regions = hits.merge_to_region()
-        self.assertNotEqual(all_merged_regions, [[0, 1]])
+    def test_protein_length(self):
+        self.assertEqual(827, len(self.target_prot_hash))
+        self.assertEqual(961, len(self.target_prot2))
 
-    def test_attributes(self):
-        hits = HspListObject(self.hsp_list, 10000)
-        hits.sort_hsp_list()
-        hits.merge_to_region()
-        self.assertEqual(hits.q_end[2], 850)
-        self.assertEqual(hits.q_start[0], 2)
-        self.assertEqual(hits.s_end[2], 9166695)
-        self.assertEqual(hits.s_start[0], 9163949)
-        self.assertTrue(hits.strand[0] == "+")
-        self.assertEqual(hits.q_len[0], 850)
-
-    def test_compute_cov(self):
-        hits = HspListObject(self.hsp_list, 10000)
-        hits.sort_hsp_list()
-        hits.merge_to_region()
-        q_start_pos = hits.q_start[0:3]
-        q_end_pos = hits.q_end[0:3]
-        chunck_cov, query_cov = hits.compute_coverage(q_start_pos, q_end_pos, hits.q_len[0])
-        self.assertEqual(query_cov, 100)
-        self.assertEqual(chunck_cov, 100)
-
-class TestExonerateParser(unittest.TestCase):
-
-    exonerate_file = folder_path + "/test_exonerate.out"
-    exo_obj = ExonerateObject(exonerate_file)
-
-    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
-    def test_run_exonerate(self):
-        region_file = folder_path + "/blast_region.fasta"
-        query_file = folder_path + "/test_consensus_eef.fa"
-        with tempdir() as tmp:
-            exo_ob = run_exonerate("test_exo", tmp, region_file, query_file)
-            self.assertTrue(os.path.exists(os.path.join(tmp, "test_exo")))
-            self.assertEqual(len(exo_ob.header), 1)
+    def test_dna_length(self):
+        self.assertEqual(2481, len(self.target_dna_hash))
+        self.assertEqual(2883, len(self.target_dna2))
 
     def test_grap_values(self):
-        self.assertTrue(type(grap_values(self.exo_obj.target_prot)) == list)
+        self.assertEqual({2481, 2883}, set([len(x) for x in grap_values(self.exonerate_obj.target_dna)]))
 
-    def test_exonerate_processor_attributes(self):
-        self.assertTrue(grap_values(self.exo_obj.header)[0]["query"] == "20_seqs_eef_test")
-        self.assertTrue(self.exo_obj.path == self.exonerate_file)
-        self.assertIn("MVNFTVDEIRA", grap_values(self.exo_obj.target_prot)[0])
-        self.assertIn("ATGgtagGTCAACTT", grap_values(self.exo_obj.target_dna)[0])
-        self.assertIn("MetValAsnPheThrValAspGluIle", grap_values(self.exo_obj.query_prot)[0])
-        self.assertIn(['gene', '4706', '7747', '+'], grap_values(self.exo_obj.gff)[0])
+    def test_gff_before_rewriting(self):
+        first_element = 'I;9859005-9873867\texonerate:protein2genome:bestfit\tgene\t4792\t9857\t485\t+\t.\tgene_id 0 ; sequence eef_3.5 ; gene_orientation +'
+        self.assertEqual(self.exonerate_obj.gff[self.target_hash][self.target_range_hash][0], first_element)
 
-    def test_aacode_3to1(self):
-        seq = aacode_3to1("MetValAsnPheThrValAspGluIle")
-        self.assertIn("MVNFTVDEI", seq)
+    def test_gff_cds_phase(self):
+        self.assertEqual(self.exonerate_obj.gff[self.target_hash][self.target_range_hash][11].split("\t")[-2], '1')
 
-    def test_remove_non_letter_signs_string_with_signs(self):
-        seq = "MV*NFTVDEI--"
-        new_seq = remove_non_letter_signs(seq)
-        self.assertFalse(seq == new_seq)
+    def test_gff_mRNA(self):
+        self.assertEqual(self.exonerate_obj.gff[self.target_hash][self.target_range_hash][1].split("\t")[2], 'mRNA')
 
-    def test_remove_non_letter_signs_normal_seq(self):
-        seq = "MVNFTVDEI"
-        new_seq = remove_non_letter_signs(seq)
-        self.assertTrue(seq == new_seq)
+    def test_gff_no_splice_no_similarity(self):
+        self.assertNotIn("similarity", self.exonerate_obj.gff[self.target_hash][self.target_range_hash][-1].split("\t")[2])
+        self.assertIn("exon", self.exonerate_obj.gff[self.target_hash][self.target_range_hash][-1].split("\t")[2])
+        self.assertNotIn("splice", self.exonerate_obj.gff[self.target_hash][self.target_range_hash][3].split("\t")[2])
+
+    def test_aa3_to_1_coding_dict(self):
+        test_string = 'Val***XaaUnkSer'
+        out_string = 'VXXXS'
+        failed_string = "ValUnk*"
+        self.assertEqual(out_string, aacode_3to1(test_string))
+        self.assertRaises(Exception, aacode_3to1, failed_string)
+
+    def test_clear_hashed_bases(self):
+        testprot = "        sHisValGluLeuLeu##LysSer------------------SerGlyIleSerLeuLeuCy"
+        testdna = " 5030 : ACACGTGGAATTACTATGAAATCC------------------AGTGGAATCAGTTTGCTCTG : 5073"
+        out_dna = " 5030 : ACACGTGGAATTACTAAAATCC------------------AGTGGAATCAGTTTGCTCTG : 5073"
+        self.assertEqual(out_dna, clear_hashed_bases(testprot, testdna))
+
+    def test_remove_non_letter_signs(self):
+        test_string = "AdfA%y*8l#+-w"
+        out_string = "AdfAy*lw"
+        self.assertEqual(remove_non_letter_signs(test_string), out_string)
 
 
-class TestGlobalGenePS(unittest.TestCase):
+class TestDataProviderObject(unittest.TestCase):
 
-    exonerate_file = folder_path + "/test_exonerate.out"
-    exo_obj = ExonerateObject(exonerate_file)
-    hmm = folder_path + "/test_hmm_eef.hmmGenePS"
-    test_blast = os.path.join(folder_path, "test_tblastn.out")
-    single_hit_blast = os.path.join(folder_path, "single_hit_test_blast.out")
-    test_consensus = folder_path + "/test_consensus_eef.fa"
+    data_base = DataProviderObject(test_data)
 
-    def test_judge_score_in_range(self):
-        score_list = [1, 2, 3, 4, 5]
-        test_score = 0
-        result_score = judge_score(score_list, test_score)
-        self.assertTrue(result_score["adj_aver"] > result_score["conf_int"][0])
+    def test_all_attributes(self):
+        self.assertEqual(self.data_base.cluster_scope, 5)
+        self.assertEqual(self.data_base.group_names[0], "next_best_blast_eef")
+        self.assertEqual(self.data_base.group_to_single_copy_ortholog["next_best_blast_eef"], "True")
+        self.assertEqual(self.data_base.group_to_group_size["next_best_blast_eef"], 5)
+        self.assertEqual(self.data_base.group_by_cluster_to_consensus_length["next_best_blast_eef"]["eef_3.5"], 840)
+        self.assertTrue(self.data_base.group_by_cluster_to_hmm["next_best_blast_eef"]["eef_3.5"].split(".")[-1] == "hmmGenePS")
+        self.assertEqual(self.data_base.group_by_cluster_to_score_cutoff["next_best_blast_eef"]["eef_3.5"], 1.124957886666315)
+        self.assertEqual(self.data_base.group_by_cluster_to_len_confidence["next_best_blast_eef"]["eef_3.5"], ['282.6490986677823', '953.9017487898448'])
 
-    def test_judge_score_out_range(self):
-        score_list = [1, 2, 3, 4, 5]
-        test_score = 10
-        self.assertRaises(ScoreError, lambda: judge_score(score_list, test_score))
 
-    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
-    def test_score_prediction(self):
-        score = score_prediction(self.exo_obj, self.hmm)
-        self.assertEqual(score, 1899.9)
+class TestOverseer(unittest.TestCase):
+    elegans_db = os.path.join(test_data, "c_elegans.PRJNA13758.WS254.genomic.fa")
+    overseer = Overseer("c_elegans", elegans_db, "prediction_location", DataProviderObject(test_data))
+    blast_file = os.path.join(test_data, "elegans_blast_eef_nextBest.txt")
+    blast = read_blast_output(blast_file, elegans_db)
+    blast.infer_regions()
+    print(blast.inferred_regions.values())
+    overseer.group_to_blast_obj["next_best_blast_eef"] = blast
 
-    @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
-    def test_make_prediction_corret_output(self):
-        test_cmd = ["less", self.test_blast]
-        blast_obj = run_tblastn("no_db", "no_query", test_cmd)
-        blast_obj.infer_regions()
-        region = blast_obj.inferred_regions["20_seqs_eef_test"]["I"][0]
+    def test_attributes_after_blast(self):
         with tempdir() as tmp:
-            exo_obj = make_prediction("test_precition", self.test_consensus, tmp, region, test_db)
-            self.assertTrue(grap_values(exo_obj.header)[0]["query"] == "20_seqs_eef_test")
+            self.overseer.predict_on_all_regions(tmp)
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

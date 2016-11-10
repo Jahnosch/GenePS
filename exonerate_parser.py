@@ -3,7 +3,7 @@ import re
 import os
 from collections import defaultdict
 from run_command import run_cmd
-
+# if is going to be a parser, deal with softmasking
 
 aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': 'K',
      'Ile': 'I', 'Pro': 'P', 'Thr': 'T', 'Phe': 'F', 'Asn': 'N',
@@ -12,28 +12,51 @@ aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': '
 
 
 def aacode_3to1(seq):
-    '''Turn a three letter protein into a one letter protein.
+    """Turn a three letter protein into a one letter protein.
 The 3 letter code can be upper, lower, or any mix of cases
 The seq input length should be a factor of 3 or else results
 in an error
-'''
-
+"""
     if len(seq) % 3 == 0:
         single_seq = []
         for i in range(0, len(seq), 3):
             single_seq.append(aa3_to_1_coding_dict.get(seq[i:i+3]))
         return "".join(single_seq)
     else:
-        print("ERROR: Sequence was not a factor of 3 in length!")
+        raise False
+
+
+
+def kill_char(string, n):
+    if n > len(string):
+        raise IndexError
+    begin = string[:n]
+    end = string[n+1:]
+    return begin + end
+
+
+def find_hashes(protein_string):
+    for idx, sign in enumerate(protein_string):
+        if sign == "#":
+            yield idx
+
+
+def clear_hashed_bases(protein_string, dna_string):
+    """removes nucleotides which are opposite to #'s in the protein sequence (non-coding-nucleotides)"""
+    if "#" in protein_string:
+        for idx in sorted(find_hashes(protein_string), reverse=True):
+            dna_string = kill_char(dna_string, idx)
+    return dna_string
 
 
 def remove_non_letter_signs(string):
-    '''removes all non-alphabetic letters from string'''
+    """removes all non-alphabetic letters from string"""
     regex = re.compile('[^a-zA-Z*]')
     return regex.sub("", string)
 
 
-remove_lower = lambda text: re.sub('[a-z]', '', text)
+def remove_lower(text_string):
+    return re.sub('[a-z]', '', text_string)
 
 
 def grap_values(attribute):
@@ -102,8 +125,10 @@ class ExonerateObject:
                         if not line.startswith("#"):
                             self.query_prot[target][trange].append(del_intron(remove_non_letter_signs(line)))
                             next(ex)
-                            self.target_prot[target][trange].append(remove_non_letter_signs(next(ex)))
-                            self.target_dna[target][trange].append(remove_lower(remove_non_letter_signs(next(ex))))
+                            target_prot = next(ex)
+                            target_dna = clear_hashed_bases(target_prot, next(ex))
+                            self.target_prot[target][trange].append(remove_non_letter_signs(target_prot))
+                            self.target_dna[target][trange].append(remove_lower(remove_non_letter_signs(target_dna)))
                         else:
                             self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
                             self.target_dna[target][trange] = "".join(self.target_dna[target][trange])
@@ -123,23 +148,56 @@ class ExonerateObject:
                         pass
             ex.seek(0)
 
-def run_exonerate(name, directory, region, query):
-    cmd = "exonerate -m p2g:b --softmaskquery no -E yes -Q protein -T dna -n 1 " \
+
+def make_exonerate_command(model, query_file, region_file):
+    cmd = "exonerate {} --softmaskquery no -Q protein -T dna -n 1 " \
       "--softmasktarget no --showvulgar no --minintron 20 --maxintron 50000 " \
-      "--showalignment yes --showtargetgff yes -q {} -t {}".format(query, region)
-    with open(os.path.join(directory, name), "w") as ex:
-        for line in run_cmd(command=cmd, wait=False):
+      "--showalignment yes --showtargetgff yes -q {} -t {}".format(model, query_file, region_file)
+    return cmd
+
+
+def safe_exonerate_output(output_path, command):
+    line_count = 0
+    with open(output_path, "w") as ex:
+        for line in run_cmd(command=command, wait=False):
             ex.write(line)
-    return ExonerateObject(os.path.join(directory, name))
+            line_count += 1
+    if line_count < 20:
+        return None
+    else:
+        return ExonerateObject(output_path)
+
+
+def run_exonerate(name, directory, region, query):
+    cmd = make_exonerate_command("-m p2g:b -E yes", query, region)
+    out_file = os.path.join(directory, name)
+    exonerate_obj = safe_exonerate_output(out_file, cmd)
+    if safe_exonerate_output(out_file, cmd) is None:
+        cmd = make_exonerate_command("-m p2g -E no", query, region)
+        exonerate_obj = safe_exonerate_output(out_file, cmd)
+    return exonerate_obj
 
 
 if __name__ == "__main__":
-    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
-                  "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/blast_region.fasta",
-                  "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/test_consensus_eef.fa")
+#    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
+#                  "/home/jgravemeyer/Desktop/blast_region.fasta",
+#                  "/home/jgravemeyer/Desktop/test_consensus_eef.fa")
 
+    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
+              "/home/jgravemeyer/Desktop/eef_region_elegans.fa",
+              "/home/jgravemeyer/Desktop/eef_consensus.fa")
+
+
+    for target in test.query_prot:
+        print(list(test.query_prot[target].keys())[0])
+        for trange in test.query_prot[target]:
+            print(">" + test.header[target][trange]["query"])
+            print(test.target_prot[target][trange])
+            print("\n".join(test.gff[target][trange]))
+'''
     print(grap_values(test.header)[0].values())
     print(grap_values(test.target_prot))
     print(grap_values(test.target_dna))
     print(grap_values(test.query_prot))
     print(grap_values(test.gff))
+'''

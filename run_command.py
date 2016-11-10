@@ -29,13 +29,16 @@ def which(program):
     if shutil.which(program):
         return program
     else:
-        print(program + " not Found\n")
-        sys.exit(1)
+        return False
 
 
 def check_programs(*arg):
+    error_list = []
     for program in arg:
-        which(program)
+        if which(program) is False:
+            error_list.append("\t[!] {} not found! Please install and add to it PATH variable".format(program))
+    if error_list:
+        print("\n".join(error_list))
 
 
 @contextlib.contextmanager

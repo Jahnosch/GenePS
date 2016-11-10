@@ -14,7 +14,8 @@ def msa_operations(command):
             if line.startswith(">"):
                 if len(msa_list) > 0:
                     msa_list.append("".join(seq))
-                msa_list.append(line.rstrip("\n"))
+                header = line.rstrip("\n").split()[0]
+                msa_list.append(header)
                 seq = []
             else:
                 seq.append(line.rstrip("\n"))
@@ -36,7 +37,7 @@ class MsaObject:
 
         self.size = [len(self.msa_list)/2]
         self.lengths = [len(self.msa_list[1])]
-        self.cmd_trim_remove = "trimal -in " + self.path + " -resoverlap 0.6 -seqoverlap 80"
+        self.cmd_trim_remove = "trimal -in " + self.path + " -resoverlap 0.70 -seqoverlap 70"
         self.cmd_trim_length = "trimal -in " + self.path + " -automated1"
 
     def msa_to_fasta(self):
@@ -45,7 +46,10 @@ class MsaObject:
 
     def trim_remove(self):
         self.msa_list = msa_operations(self.cmd_trim_remove)
-        self.size.append(len(self.msa_list)/2)
+        new_size = len(self.msa_list)/2
+        if new_size == 0.5:
+            new_size = 0
+        self.size.append(new_size)
         self.msa_to_fasta()
 
     def trim_length(self):
@@ -57,7 +61,6 @@ class MsaObject:
         header_list = self.all_header()
         string_list = []
         for header in header_list:
-            header = header.split()[0]
             string_list.append(header)
             string_list.append("".join(fasta_hash[header]))
         with open(self.path, "w") as m:
@@ -73,5 +76,15 @@ class MsaObject:
     def all_aln(self):
         return [self.msa_list[x] for x in range(1, len(self.msa_list), 2)]
 
+    def check_msa_size_and_length(self):
+        if self.size[-1] < 2 \
+                or ((self.size[0] - self.size[-1]) / self.size[0]) > 50:
+            print("\t[!] '{}' : NO MSA computable - only {} proteins remained after filtering\n".format(self.cluster_name, self.size[-1]))
+            return False
 
+        elif self.lengths[-1] < 20:
+            print("\t[!] '{}' : NO MSA computable - only {} proteins too short after filtering\n".format(self.cluster_name, self.lengths[-1]))
+            return False
+        else:
+            return True
 

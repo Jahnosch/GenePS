@@ -9,26 +9,20 @@ def make_blast_db(genome, temp_dir):
     name = genome.split("/")[-1]
     out_dir = os.path.join(temp_dir, name)
     if os.path.exists(out_dir + ".nhr"):
-        print("\n[!] BLAST db already exists:\n{}".format(os.path.join(temp_dir, name)))
+        print("\n\t[-] BLAST db already exists:\n\t{}".format(os.path.join(temp_dir, name)))
         return out_dir
     command = "makeblastdb -in " + genome + " -dbtype nucl -parse_seqids -out " + out_dir
     run_cmd(command=command, wait=True)
-    print("\n[-] generating BLAST db\n")
     return out_dir
 
 
-def parse_blastdb(db_path, contig, start, end, test_cmd=None):
+def parse_blastdb(db_path, contig, start, end):
     region = str(start) + "-" + str(end)
-    if test_cmd is None:
-        command = "blastdbcmd -db " + db_path + " -dbtype nucl -entry " + contig + " -range " + region
-    else:
-        command = test_cmd
+    command = "blastdbcmd -db " + db_path + " -dbtype nucl -entry " + contig + " -range " + region
     results = []
     for line in run_cmd(command=command, wait=False):
         line = line.strip("\n")
-        if line.startswith(">"):
-            results.append(line.strip() + ";" + region + "\n")
-        else:
+        if not line.startswith(">"):
             results.append(line)
     return "".join(results)
 
@@ -45,30 +39,30 @@ class HspListObject:
         self.merge_dist = merging_dist
         self.hsp_list = subject_hsp_list
         self.hsp_sorted = []
-        self.s_start = None
-        self.s_end = None
-        self.q_len = None
-        self.strand = None
-        self.q_start = None
-        self.q_end = None
+        self.s_start = []
+        self.s_end = []
+        self.q_len = []
+        self.strand = []
+        self.q_start = []
+        self.q_end = []
 
     def get_sorted_attributes(self):
-        self.s_start = [x["s_start"] for x in self.hsp_sorted]
-        self.s_end = [x["s_end"] for x in self.hsp_sorted]
-        self.q_len = [x["q_len"] for x in self.hsp_sorted]
-        self.strand = [x["strand"] for x in self.hsp_sorted]
-        self.q_start = [x["q_start"] for x in self.hsp_sorted]
-        self.q_end = [x["q_end"] for x in self.hsp_sorted]
+        for x in self.hsp_sorted:
+            self.s_start.append(x["s_start"])
+            self.s_end.append(x["s_end"])
+            self.q_len.append(x["q_len"])
+            self.strand.append(x["strand"])
+            self.q_start.append(x["q_start"])
+            self.q_end.append(x["q_end"])
 
     def sort_hsp_list(self):
-        self.hsp_sorted = sorted(self.hsp_list, key=itemgetter("s_start"))
+        for hsp_x in self.hsp_list:
+            if hsp_x["strand"] == "-":
+                s_start = hsp_x["s_start"]
+                hsp_x["s_start"] = hsp_x["s_end"]
+                hsp_x["s_end"] = s_start
+        self.hsp_sorted = sorted(self.hsp_list, key=itemgetter("strand", "s_start"))
         self.get_sorted_attributes()
-
-#    def merge_condition(self, idx, last_idx):
-#        if self.s_end[idx]
-#        if abs(self.s_end[idx] - self.s_start[last_idx]) < self.merge_dist\
-#                and self.strand[idx] == self.strand[last_idx]:
-#            return True
 
     def merge_to_region(self):
         if self.hsp_sorted is []:
@@ -92,7 +86,7 @@ class HspListObject:
         if single_merge is not None:
             all_merged_regions.append(single_merge)
         else:
-            all_merged_regions.append([len(self.hsp_sorted)-1])
+            all_merged_regions.append([len(self.hsp_sorted) - 1])
         return all_merged_regions
 
     def compute_coverage(self, q_start_pos, q_end_pos, q_length):
@@ -115,105 +109,99 @@ class HspListObject:
 
 
 class BlastObject:
-
     def __init__(self, blast_out, db_path, merging_dist=10000, flanking_dist=5000):
         self.blast_out = blast_out
         self.db_path = db_path
         self.merging_distance = merging_dist
         self.flanking_distance = flanking_dist
         self.inferred_regions = None
+        self.amount_regions = None
+        self.region_tuple_to_region_seq = {}
+
+    def adjust_oversized_end_pos(self, region_seq, start_position):
+        return len(region_seq) + start_position - 1
 
     def infer_regions(self):
+        self.amount_regions = 0
         inferred_regions = {}
         Region = namedtuple('Region', 'contig, s_start, s_end, strand, chunk_cov, query_cov, q_len')
-        for query in self.blast_out:
-            if query not in inferred_regions:
-                inferred_regions[query] = defaultdict(list)
-            for subject in self.blast_out[query]:
-                hsp_list = self.blast_out[query][subject]
-                if len(hsp_list) == 1:
-                    chunk_cov = 100  # -> just one start and end pos
-                    query_cov = round(((hsp_list[0]["q_end"] - hsp_list[0]["q_start"]) * 100) / hsp_list[0]["q_len"])
-                    strand = hsp_list[0]["strand"]
-                    s_start = set_min_start(hsp_list[0]["s_start"] - self.flanking_distance)
-                    s_end = hsp_list[0]["s_end"] + self.flanking_distance
+        for subject in self.blast_out:
+            if subject not in inferred_regions:
+                inferred_regions[subject] = defaultdict(list)
+            for query in self.blast_out[subject]:
+                hsp_list = self.blast_out[subject][query]
+                hits = HspListObject(hsp_list, self.merging_distance)
+                hits.sort_hsp_list()
+                idx_all_merged_regions = hits.merge_to_region()
+                self.amount_regions += len(idx_all_merged_regions)
+                for region in idx_all_merged_regions:
+                    begin, stop = region[0], region[-1]
+                    strand = hits.strand[begin]
+                    s_start = set_min_start(hits.s_start[begin] - self.flanking_distance)
+                    fictive_s_end = hits.s_end[stop] + self.flanking_distance   # contig may be shorter
+                    fasta_str = parse_blastdb(self.db_path, subject, s_start, fictive_s_end)
+                    s_end = self.adjust_oversized_end_pos(fasta_str, s_start)
+                    q_start_pos = hits.q_start[begin:stop + 1]
+                    q_end_pos = hits.q_end[begin:stop + 1]
+                    chunk_cov, query_cov = hits.compute_coverage(q_start_pos, q_end_pos, hits.q_len[0])
                     region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
-                                    chunk_cov=chunk_cov, query_cov=query_cov, q_len = hsp_list[0]["q_len"])
-                    inferred_regions[query][subject].append(region)
-                else:
-                    hits = HspListObject(hsp_list, self.merging_distance)
-                    hits.sort_hsp_list()
-                    idx_all_merged_regions = hits.merge_to_region()
-                    for region in idx_all_merged_regions:
-                        begin, stop = region[0], region[-1]
-                        strand = hits.strand[begin]
-                        s_start = set_min_start(hits.s_start[begin] - self.flanking_distance)
-                        s_end = hits.s_end[stop] + self.flanking_distance
-                        q_start_pos = hits.q_start[begin:stop+1]
-                        q_end_pos = hits.q_end[begin:stop+1]
-                        chunk_cov, query_cov = hits.compute_coverage(q_start_pos, q_end_pos, hits.q_len[0])
-                        region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
-                                        chunk_cov=chunk_cov, query_cov=query_cov, q_len= hits.q_len[0])
-                        inferred_regions[query][subject].append(region)
+                                    chunk_cov=chunk_cov, query_cov=query_cov, q_len=hits.q_len[0])
+                    inferred_regions[subject][query].append(region)
+                    self.region_tuple_to_region_seq[region] = ">{};{}-{}\n{}".format(subject, s_start, s_end, fasta_str)
         self.inferred_regions = inferred_regions
 
 
-# since every consensus is know in one file, tblastn should always give a hit
-# just if no consensus hits --> quit entiry analysis
-def run_tblastn(db_path, q_file, intermediate_file=None, test_cmd=None):
-    if test_cmd is None:
-        command =["tblastn", "-query", q_file,"-db", db_path, "-outfmt",
-              """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-5"]
-    else:
-        command = test_cmd
+def read_blast_output(blast_file, db_path):
     blast_dict = {}
     results_flag = False
-    for line in run_cmd(command=command, wait=False):
-        if not line.startswith("#"):
-            results_flag = True
-            line = line.strip("\n").split("\t")
-            if "-" in line[8]:
-                strand = "-"
-            else:
-                strand = "+"
-            query = line[0]
-            subject = line[1]
-            row = { "contig": subject,          # can be removed
-                    "evalue": float(line[2]),
-                    "q_start": int(line[3]),
-                    "q_end": int(line[4]),
-                    "s_start": int(line[5]),
-                    "s_end": int(line[6]),
-                    "q_len": int(line[7]),
-                    "strand": strand}
-            if query not in blast_dict:
-                blast_dict[query] = defaultdict(list)
-            blast_dict[query][subject].append(row)
+    with open(blast_file) as blast_f:
+        for line in blast_f:
+            if not line.startswith("#"):
+                results_flag = True
+                line = line.strip("\n").split("\t")
+                if "-" in line[8]:
+                    strand = "-"
+                else:
+                    strand = "+"
+                query = line[0]
+                subject = line[1]
+                row = {"contig": subject,
+                       "evalue": float(line[2]),
+                       "q_start": int(line[3]),
+                       "q_end": int(line[4]),
+                       "s_start": int(line[5]),
+                       "s_end": int(line[6]),
+                       "q_len": int(line[7]),
+                       "strand": strand}
+                if subject not in blast_dict:
+                    blast_dict[subject] = defaultdict(list)
+                blast_dict[subject][query].append(row)
+        blast_f.seek(0)
+        if results_flag:
+            blast_object = BlastObject(blast_dict, db_path)
+            return blast_object
+        return None
 
-    if results_flag:
-        blast_object = BlastObject(blast_dict, db_path)
-        return blast_object
-    return None
 
+def run_tblastn(db_path, q_file, file_location):
+    command = ["tblastn", "-query", q_file, "-db", db_path, "-outfmt",
+               """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-5", "-out", file_location]
+    run_cmd(command=command, wait=True)
+    return read_blast_output(file_location, db_path)
 
 if __name__ == "__main__":
-    db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/Blast_dbs/c_elegans/c_elegans.PRJNA13758.WS254.genomic.fa"
-    query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/test_out/Predictions/group1.consensus"
-    blast = run_tblastn(db, query_test)
+    db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/Blast_dbs/c_brenneri/c_brenneri.PRJNA20035.WS249.genomic.fa"
+    query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/find_region_test_query.fa"
+    out_dir = "/home/jgravemeyer/Dropbox/MSc_project/data/remanei_OG1685.blast"
+    blast = run_tblastn(db, query_test, out_dir)
     blast.infer_regions()
-    print("# Fields: name, contig, subject_start, subject_end, strand, chunk_coverage, total_coverage, query_length")
-    for inferred_region in blast.inferred_regions:
-        for contig in blast.inferred_regions[inferred_region]:
-            for region in blast.inferred_regions[inferred_region][contig]:
-                print("\t".join([inferred_region, region.contig, str(region.s_start), str(region.s_end), str(region.strand), str(region.chunk_cov), str(region.query_cov), str(region.q_len)]))
-
-    print("# Fields: query acc., subject acc., evalue, q. start, q. end, s. start, s. end, query length, strand")
-    for query in blast.blast_out:
-        for hsp_list in blast.blast_out[query]:
-            for hsp in blast.blast_out[query][hsp_list]:
-                print("\t".join([query, hsp["contig"], str(hsp["evalue"]), str(hsp["q_start"]), str(hsp["q_end"]), str(hsp["s_start"]), str(hsp["s_end"]), str(hsp["q_len"]), str(hsp["strand"])]))
 
 
-
-
+    for contig in blast.inferred_regions:
+        for query in blast.inferred_regions[contig]:
+            print(query)
+            for region_x in blast.inferred_regions[contig][query]:
+                results = region_blast = parse_blastdb(db, contig, region_x.s_start, region_x.s_end)
+                print(region_x)
+                print(blast.region_tuple_to_region_seq[region_x])
 

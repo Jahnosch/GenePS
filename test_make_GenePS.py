@@ -8,7 +8,7 @@ from run_command import tempdir
 from compute_msa import msa_operations, MsaObject
 
 script_path = os.path.dirname(os.path.realpath(__file__))
-test_data = os.path.join(script_path, "test_data")
+test_data = os.path.join(script_path, "compile_script/test_data")
 single_file = os.path.join(test_data, "group1/eef_test.fa")
 file_name = "eef_test"
 
@@ -119,22 +119,22 @@ class TestMsaObject(unittest.TestCase):
     def test_check_size_len_after_trimal_no_error(self):
         with tempdir() as tmp_dir:
             msa_obj = MsaObject(msa_list, file_name, tmp_dir)
-            msa_obj.size.append(6)
-            msa_obj.lengths.append(746)
+            msa_obj.size_history.append(6)
+            msa_obj.lengths_history.append(746)
             self.assertRaises(None, check_size_len_after_trimal(msa_obj))
 
     def test_check_size_len_after_trimal_expect_size_error(self):
         with tempdir() as tmp_dir:
             msa_obj = MsaObject(msa_list, file_name, tmp_dir)
-            msa_obj.size.append(3)
-            msa_obj.lengths.append(746)
+            msa_obj.size_history.append(3)
+            msa_obj.lengths_history.append(746)
             self.assertRaises(MsaSizeError, lambda: check_size_len_after_trimal(msa_obj))
 
     def test_check_size_len_after_trimal_expect_length_error(self):
         with tempdir() as tmp_dir:
             msa_obj = MsaObject(msa_list, file_name, tmp_dir)
-            msa_obj.size.append(6)
-            msa_obj.lengths.append(19)
+            msa_obj.size_history.append(6)
+            msa_obj.lengths_history.append(19)
             self.assertRaises(MsaLengthError, lambda: check_size_len_after_trimal(msa_obj))
 
     @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
@@ -143,7 +143,7 @@ class TestMsaObject(unittest.TestCase):
             msa_obj = MsaObject(msa_list, file_name, tmp_dir)
             msa_obj.msa_to_fasta()
             msa_obj.trim_remove()
-            org_size, trim_size = msa_obj.size[0], msa_obj.size[1]
+            org_size, trim_size = msa_obj.size_history[0], msa_obj.size_history[1]
             self.assertEqual(int((org_size - trim_size)), 5)
 
     @unittest.skipIf("travis" in os.getcwd(), "does not run on travis ci")
@@ -152,7 +152,7 @@ class TestMsaObject(unittest.TestCase):
             msa_obj = MsaObject(msa_list, file_name, tmp_dir)
             msa_obj.msa_to_fasta()
             msa_obj.trim_length()
-            org_len, trim_len = msa_obj.lengths[0], msa_obj.lengths[1]
+            org_len, trim_len = msa_obj.lengths_history[0], msa_obj.lengths_history[1]
             self.assertEqual(int((org_len - trim_len)), 372)
 
     def test_all_header(self):

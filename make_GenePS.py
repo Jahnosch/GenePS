@@ -23,8 +23,8 @@ import tempfile as tmp
 from collections import defaultdict
 from run_command import run_cmd, tempdir, check_programs
 from compute_msa import generate_msa, MsaObject
-import time
 import_errors = []
+
 try:
     from docopt import docopt
 except ImportError:
@@ -67,6 +67,23 @@ def check_and_hash_fasta(fasta_file, file_name):
         return None
     else:
         return fasta_dict
+
+
+def clean_fasta_hash(old_hash, to_keep_list):
+    clean_dict = {}
+    for header in to_keep_list:
+        clean_dict[header] = old_hash[header]
+    return clean_dict
+
+
+def write_hash_to_fasta(hash_fa, location):
+    string_list = []
+    with open(location, "w") as hash_f:
+        for header in hash_fa:
+            string_list.append(header)
+            string_list.append("".join(hash_fa[header]))
+        hash_f.write("\n".join(string_list))
+    return location
 
 
 def get_outdir(out_directory, add_dir=""):
@@ -238,14 +255,12 @@ def hash_sequence_translation_file(sequence_id_name_file):
 
 
 def hash_species_translation_file(species_id_file):
-    translation_dict = {}
+    id_list = []
     with open(species_id_file) as tf:
         for line in tf:
             line = line.strip("\n").split(":")
-            sp_name = line[1].strip().split(".")[0]
-            sp_id = line[0]
-            translation_dict[sp_name] = sp_id
-    return translation_dict
+            id_list.append(line[0])
+    return set(id_list)
 
 
 def blast_prot_id_hits(blast_file):
@@ -310,9 +325,8 @@ def get_twin_hash(cluster_specID_to_protList, speciesID_to_forbidden_proteins):
 ########################################################################################################################
 
 class ScoreObject:
-    def __init__(self, fasta_dict, header_list, hmm_path):
+    def __init__(self, fasta_dict, hmm_path):
         self.fasta_hash = fasta_dict
-        self.left_proteins_header = header_list
         self.hmm_path = hmm_path
         self.score_dict = {}
         self.score_distribution_parameters = None
@@ -364,8 +378,8 @@ class ScoreObject:
     def iterative_score_computation(self, length_normalized=False):
         if length_normalized:
             self.seq_length_hash()
-        for idx in range(0, len(self.left_proteins_header)):
-            rest_prot = self.left_proteins_header[:]
+        for idx in range(0, len(self.fasta_hash.keys())):
+            rest_prot = list(self.fasta_hash.keys())
             query = rest_prot.pop(idx)
             with tmp.NamedTemporaryFile() as q_tmp:
                 write_to_tempfile(q_tmp.name, self.query_for_fasta(query))
@@ -385,19 +399,19 @@ class ScoreObject:
         return self.score_dict
 
     # not needed while re-aligned
-    def compute_full_phmm(self):
-        msa_string = self.generate_msa_string(self.left_proteins_header)
+    def compute_full_phmm(self, location):
+        msa_string = self.generate_msa_string(self.fasta_hash.keys())
         with tmp.NamedTemporaryFile() as msa_tmp:
             write_to_tempfile(msa_tmp.name, msa_string)
-            generate_hmm(self.hmm_path, msa_tmp.name)
-        return self.hmm_path
+            generate_hmm(location, msa_tmp.name)
+        return location
 
     def bulk_score_computation(self, length_normalized=False):
         if length_normalized:
             self.seq_length_hash()
         with tmp.NamedTemporaryFile() as q_tmp:
             seq_list = []
-            for header in self.left_proteins_header:
+            for header in self.fasta_hash.keys():
                 seq_list.append(header)
                 seq_list.append(self.fasta_hash[header][0])
             write_to_tempfile(q_tmp.name, "\n".join(seq_list))
@@ -420,6 +434,7 @@ class Overseer:
         self.group_to_file_list = defaultdict(list)
         self.group_to_result_path = {}
         self.group_by_file_to_cluster_hash = defaultdict(dict)
+        self.group_by_file_to_fasta_path = defaultdict(dict)
         self.group_by_file_to_msa_obj = defaultdict(dict)
         self.group_by_file_to_hmm = defaultdict(dict)
         self.group_by_file_to_score_obj = defaultdict(dict)
@@ -431,6 +446,7 @@ class Overseer:
         self.species_id_set = None
         self.group_by_file_to_twin_hash = defaultdict(dict)
         self.group_by_file_to_twin_score_obj = defaultdict(dict)
+        self.group_by_file_to_twin_hmm = defaultdict(dict)
         self.untranslatable_files = []
 
     ####################################################################################################################
@@ -492,6 +508,13 @@ class Overseer:
     # Overseer - MSA/HMM generation and normal true negative score computation
     ####################################################################################################################
 
+    def remove_filtered_from_file_list(self):
+        for group, file_list in self.removed_group_to_file_list.items():
+            for file_name in file_list:
+                self.group_to_file_list[group].remove(file_name)
+                self.filtered_input_scope -= 1
+        return self.filtered_input_scope
+
     def compute_msa_and_hmm(self, directory):
         count = 1
         for group, file_list in self.group_to_file_list.items():
@@ -501,8 +524,10 @@ class Overseer:
                 msa_obj.msa_to_fasta()
                 msa_obj.trim_remove()
                 if msa_obj.check_msa_size_and_length() is True:
-                    if msa_obj.size[0] != msa_obj.size[-1]:
-                        msa_obj.re_align_to_fasta(self.group_by_file_to_cluster_hash[group][file_name])
+                    self.group_by_file_to_cluster_hash[group][file_name] = clean_fasta_hash(self.group_by_file_to_cluster_hash[group][file_name], msa_obj.all_header())
+                    self.group_by_file_to_fasta_path[group][file_name] = write_hash_to_fasta(self.group_by_file_to_cluster_hash[group][file_name], os.path.join(output_dir, file_name + ".fa_GenePS"))
+                    if msa_obj.size_history[0] != msa_obj.size_history[-1]:
+                        msa_obj.re_align(self.group_by_file_to_fasta_path[group][file_name])
                     self.group_by_file_to_msa_obj[group][file_name] = msa_obj
                     self.group_by_file_to_hmm[group][file_name] = generate_hmm(os.path.join(output_dir, file_name + ".hmmGenePS"), msa_obj.path)
                 else:
@@ -510,16 +535,12 @@ class Overseer:
                     log_filtered_files.append(file_name)
                 print_progress(count, self.filtered_input_scope, prefix='\tGenerating Hidden Markov Models:\t', suffix='Complete', bar_length=30)
                 count += 1
-        for group, file_list in self.removed_group_to_file_list.items():
-            for file_name in file_list:
-                self.group_to_file_list[group].remove(file_name)
-                self.filtered_input_scope -= 1
-        return self.filtered_input_scope
+        return self.remove_filtered_from_file_list()
 
     def choose_scoring_method(self, cluster_hash, group, file_name, normalize=False):
         hmm = self.group_by_file_to_hmm[group][file_name]
         filtered_proteins = self.group_by_file_to_msa_obj[group][file_name].all_header()
-        scoring_obj = ScoreObject(cluster_hash, filtered_proteins, hmm)
+        scoring_obj = ScoreObject(cluster_hash, hmm)
         if len(filtered_proteins) < 20:
             score_hash = scoring_obj.iterative_score_computation(length_normalized=normalize)
         else:
@@ -569,34 +590,18 @@ class Overseer:
                 fasta_hash = self.make_cluster_specific_true_negativ_hash(group, file_name)
                 if fasta_hash is None:
                     continue
-                scoring_obj = ScoreObject(fasta_hash, list(fasta_hash.keys()), hmm)
+                scoring_obj = ScoreObject(fasta_hash, hmm)
                 score_hash = scoring_obj.bulk_score_computation(length_normalized=length_normalized)
                 if keep:
                     with open(os.path.join(keep_dir, "{}_{}_TrueNegativeScores.txt".format(group, file_name)), "w") as score_f:
                         for protein in score_hash:
                             score_f.write("{}\t{}\n".format(protein, score_hash[protein]))
                 self.group_by_file_to_twin_score_obj[group][file_name] = scoring_obj
-                print_progress(count, self.filtered_input_scope, prefix='\tComputing True Negative HMM Score Distributions:\t', suffix='Complete', bar_length=30)
+                self.group_by_file_to_twin_hmm[group][file_name] = scoring_obj.compute_full_phmm(os.path.join(output_dir, file_name + ".TN.hmmGenePS"))
+                print_progress(count, self.filtered_input_scope, prefix='\tTrue Negative Score Distributions:\t', suffix='Complete', bar_length=30)
                 count += 1
         return self.group_by_file_to_twin_score_obj
 
-    def get_all_species_ids(self):
-        self.species_id_set = set([])
-        max_species = len(spec_id_to_name)
-        for group, file_list in self.group_to_file_list.items():
-            for file_name in file_list:
-                for header in list(self.group_by_file_to_cluster_hash[group][file_name].keys()):
-                    species_name = header.split(".")[0].strip(">")
-                    try:
-                        species_id = spec_name_to_id[species_name]
-                        self.species_id_set.add(species_id)
-                    except KeyError:
-                        print("\t[!] WARNING - species '{}' is not translatable\n".format(species_name))
-                        log_untranslatable_species.append(species_name)
-                        continue
-                    if len(self.species_id_set) == max_species:
-                        return self.species_id_set
-        return self.species_id_set
 
 ########################################################################################################################
 # main
@@ -616,14 +621,17 @@ if __name__ == "__main__":
     # if true negative translation files provided
     blast_specID_protID_hitList = defaultdict(lambda: defaultdict(list))
     idPair_2_namePair, namePair_2_idPair = {}, {}
-    spec_id_to_name, spec_name_to_id = {}, {}
     all_protein_fasta_dict = {}
     if true_negative_file:
         tn_args = parse_true_negative_arg(true_negative_file)
         blast_path, blast_file_set = get_blast_files(tn_args["blast"])
         idPair_2_namePair, namePair_2_idPair = hash_sequence_translation_file(tn_args["sequenceID"])
         all_protein_fasta_dict = hash_fasta(tn_args["protein"])
-        spec_name_to_id = hash_species_translation_file(tn_args["speciesID"])
+        species_ids = hash_species_translation_file(tn_args["speciesID"])
+        number_blast_files = hash_blast_files(species_ids)
+        if not number_blast_files - len(species_ids) == 0:
+            print("\t[!] FATAL ERROR: Not all Blast files could be hashed\n")
+            sys.exit()
     if keep:
         keep_dir = get_outdir(output_dir, add_dir="intermediate_files")
 
@@ -643,21 +651,11 @@ if __name__ == "__main__":
         if not filtered_data_scope > 0:
             print("\t[!] FATAL ERROR: NO Multiple Sequence Alignments computable\n")
             sys.exit()
-
         # score distributions for all cluster
         all_score_hashes = overseer_obj.compute_all_hmm_scores(length_normalized=True)
-
         # compute true negative scores
         if true_negative_file:
-            start = time.time()
-            species_ids = overseer_obj.get_all_species_ids()
-            END = time.time()
-            number_blast_files = hash_blast_files(species_ids)
-            if not number_blast_files - len(species_ids) == 0:
-                print("\t[!] FATAL ERROR: Not all Blast files could be hashed\n")
-                sys.exit()
             all_tn_scores_hash = overseer_obj.compute_true_negative_hmm_scores(length_normalized=True)
-
         # write results
         print("\n")
         read_count = 1
@@ -665,8 +663,7 @@ if __name__ == "__main__":
             with open(overseer_obj.group_to_result_path[name_group], "w") as results_file:
                 results_file.write("group: {}\ngroup_size: {}\nsingle_copy_ortholog: {}\n".format(name_group, str(len(all_files)), single_copy_ortholog))
                 for cluster_name in all_files:
-                    hmm_location = overseer_obj.group_by_file_to_hmm[name_group][cluster_name]
-                    consensus = get_consensus(hmm_location)
+                    consensus = get_consensus(overseer_obj.group_by_file_to_hmm[name_group][cluster_name])
                     len_mean_std = ["-", "-"]
                     if true_negative_file:
                         tn_scores = list(overseer_obj.group_by_file_to_twin_score_obj[name_group][cluster_name].score_dict.values())
@@ -681,8 +678,8 @@ if __name__ == "__main__":
                         if single_copy_ortholog:
                             len_mean_std = overseer_obj.group_by_file_to_score_obj[name_group][cluster_name].calculate_length_distribution_parameters()
                         distributions_str = "#score_mean_std: {},{}\n#length_mean_std: {},{}".format(tp_score_mean_std[0], tp_score_mean_std[1], len_mean_std[0], len_mean_std[1])
-                    results_file.write("#name: {}\n#phmm_dir: {}\n{}\n{}\n".format(cluster_name, hmm_location, distributions_str, consensus))
-                    print_progress(read_count, overseer_obj.filtered_input_scope, prefix='\tWriting Results:\t', suffix='Complete', bar_length=30)
+                    results_file.write("#name: {}\n{}\n{}\n".format(cluster_name, distributions_str, consensus))
+                    print_progress(read_count, overseer_obj.filtered_input_scope, prefix='\tWriting Results to Files:\t\t', suffix='Complete', bar_length=30)
                     read_count += 1
                 results_file.close()
 
@@ -694,4 +691,4 @@ if __name__ == "__main__":
             log.write("\n".join(log_untranslatable_species))
             log.write("\n".join(log_files_omitted_for_tn))
             log.write("\n".join(log_not_in_protein_file))
-        print("\nDONE!\n")
+    print("\nDONE!\n")

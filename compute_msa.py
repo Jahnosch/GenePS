@@ -35,8 +35,8 @@ class MsaObject:
         self.name = cluster_name + ".msaGenePS"
         self.path = os.path.join(output_dir, self.name)
 
-        self.size = [len(self.msa_list)/2]
-        self.lengths = [len(self.msa_list[1])]
+        self.size_history = [len(self.msa_list) / 2]
+        self.lengths_history = [len(self.msa_list[1])]
         self.cmd_trim_remove = "trimal -in " + self.path + " -resoverlap 0.70 -seqoverlap 70"
         self.cmd_trim_length = "trimal -in " + self.path + " -automated1"
 
@@ -49,25 +49,18 @@ class MsaObject:
         new_size = len(self.msa_list)/2
         if new_size == 0.5:
             new_size = 0
-        self.size.append(new_size)
+        self.size_history.append(new_size)
         self.msa_to_fasta()
 
     def trim_length(self):
         self.msa_list = msa_operations(self.cmd_trim_length)
-        self.lengths.append(len(self.msa_list[1]))
+        self.lengths_history.append(len(self.msa_list[1]))
         self.msa_to_fasta()
 
-    def re_align_to_fasta(self, fasta_hash):
-        header_list = self.all_header()
-        string_list = []
-        for header in header_list:
-            string_list.append(header)
-            string_list.append("".join(fasta_hash[header]))
-        with open(self.path, "w") as m:
-            m.write("\n".join(string_list))
-        self.msa_list = generate_msa(self.path)
-        self.size.append(len(self.msa_list)/2)
-        self.lengths.append(len(self.msa_list[1]))
+    def re_align(self, fasta_file):
+        self.msa_list = generate_msa(fasta_file)
+        self.size_history.append(len(self.msa_list) / 2)
+        self.lengths_history.append(len(self.msa_list[1]))
         self.msa_to_fasta()
 
     def all_header(self):
@@ -77,13 +70,13 @@ class MsaObject:
         return [self.msa_list[x] for x in range(1, len(self.msa_list), 2)]
 
     def check_msa_size_and_length(self):
-        if self.size[-1] < 2 \
-                or ((self.size[0] - self.size[-1]) / self.size[0]) > 50:
-            print("\t[!] '{}' : NO MSA computable - only {} proteins remained after filtering\n".format(self.cluster_name, self.size[-1]))
+        if self.size_history[-1] < 2 \
+                or ((self.size_history[0] - self.size_history[-1]) / self.size_history[0]) > 50:
+            print("\t[!] '{}' : NO MSA computable - only {} proteins remained after filtering\n".format(self.cluster_name, self.size_history[-1]))
             return False
 
-        elif self.lengths[-1] < 20:
-            print("\t[!] '{}' : NO MSA computable - only {} proteins too short after filtering\n".format(self.cluster_name, self.lengths[-1]))
+        elif self.lengths_history[-1] < 20:
+            print("\t[!] '{}' : NO MSA computable - only {} proteins too short after filtering\n".format(self.cluster_name, self.lengths_history[-1]))
             return False
         else:
             return True

@@ -32,37 +32,53 @@ from make_GenePS import get_phmm_score, write_to_tempfile, get_outdir
 ########################################################################################################################
 # Global Functions
 ########################################################################################################################
+std_factor = 2
+coverage_min = 30
+data_base = None
+gene_ps_results = None
+out_dir = None
+keep = None
+verbose = None
+genome = None
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+logger_blast_region = logging.getLogger("BLAST")
+logger_prediction = logging.getLogger("Exonerate")
+logger_validate = logging.getLogger("Filtering")
 
 
-def check_arguments():
-    global coverage_min, std_factor, out_dir, keep, genome
+def check_arguments(args):
+    global coverage_min, std_factor, out_dir, gene_ps_results, keep, verbose, genome
+    gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
     genome_hash = None
-    coverage_min = 30
-    std_factor = 2
     out_dir = "/".join(gene_ps_results.split("/")[:-1])
+    if args['--keep']:
+        keep = args['--keep']
+    if args['--verbose']:
+        verbose = args['--verbose']
     error_list = []
     if not os.path.exists(gene_ps_results):
         error_list.append("[!]\t ERROR: input directory: {} does not exist".format(gene_ps_results))
     if not os.path.isdir(gene_ps_results):
         error_list.append("[!]\t ERROR: please specify a DIRECTORY as input, {} is not a directory".format(gene_ps_results))
-    if coverage_min is not None:
+    if args['--coverage_filer']:
         try:
-            coverage_min = int(coverage_min)
+            coverage_min = int(args['--coverage_filer'])
         except ValueError:
             error_list.append("[!]\t ERROR: coverage_min needs integer; '{}' is not an integer".format(coverage_min))
-    if std_factor is not None:
+    if args['--HMM_filter']:
         try:
-            std_factor = float(std_factor)
+            std_factor = float(args['--HMM_filter'])
         except ValueError:
             error_list.append("[!]\t ERROR: coverage_min needs float or integer; '{}'".format(std_factor))
-    if out_dir is not None:
-        if os.path.isdir(out_dir):
-            out_dir = os.path.abspath(out_dir)
+    if args["--out_dir"]:
+        if os.path.isdir(args["--out_dir"]):
+            out_dir = os.path.abspath(args["--out_dir"])
         else:
             error_list.append("[!]\t ERROR: output directory: {} does not exist".format(out_dir))
-    if genome.split(".")[-1] == "txt":
+    if args['--genome'].split(".")[-1] == "txt":
         genome_hash = {}
-        with open(genome) as g_file:
+        with open(args['--genome']) as g_file:
             for genome_line in g_file:
                 try:
                     genome_line = genome_line.strip("\n").split("\t")
@@ -73,6 +89,8 @@ def check_arguments():
                         error_list.append("[!]\t ERROR: {} does not exist or was specified wrongly".format(genome_line[0]))
                 except IndexError:
                     error_list.append("[!]\t ERROR: genome file is not a TAB-SEPARATED 2-column file".format(genome_line))
+    else:
+        error_list.append("[!]\t ERROR: genome file is not a txt file".format(args['--genome']))
     if error_list:
         print("[!] {} - ARGUMENT ERRORS\n".format(len(error_list)))
         print("\n".join(error_list))
@@ -139,15 +157,38 @@ class DataProviderObject:
         self.group_by_cluster_to_consensus_length = defaultdict(dict)
         self.group_by_cluster_to_consensus_sequence = defaultdict(dict)
         self.group_by_cluster_to_hmm = defaultdict(dict)
+        self.group_by_cluster_to_TN_hmm = defaultdict(dict)
+        self.group_by_cluster_to_fasta = defaultdict(dict)
         self.group_by_cluster_to_len_confidence = defaultdict(dict)
         self.group_by_cluster_to_score_cutoff = defaultdict(dict)
         self.cluster_scope = self.load_data_and_initialize_global_variables()
+
+    def check_loaded_data(self, cluster_count, input_scope, error_list):
+        if cluster_count != input_scope:
+            error_list.append("\t[!] Supposed number of cluster != counted amount of cluster\n")
+        if cluster_count == 0:
+            error_list.append("\t[!] No GenePS files found - please check your input directory in terms of path and file style\n")
+        if error_list:
+            print("\n".join(error_list))
+            sys.exit()
+        else:
+            return input_scope
+
+    def validate_path_files(self, cluster):
+        error_list = []
+        for ending in [".hmmGenePS", ".TN.hmmGenePS", ".fa_GenePS"]:
+            if os.path.exists(os.path.join(self.gene_ps_results, cluster + ending)):
+                pass
+            else:
+                error_list.append("[!]\t{} does not exist".format(cluster + ending))
+        return error_list
 
     def load_data_and_initialize_global_variables(self):
         def mod_next():
             return next(mg).strip().split(":")
         cluster_count = 0
         input_scope = 0
+        error_list = []
         for subdir, dirs, files in os.walk(self.gene_ps_results):
             for file_path_str in files:
                 if file_path_str.split(".")[-1] == "GenePS" and len(file_path_str.split(".")) > 1:
@@ -163,7 +204,6 @@ class DataProviderObject:
                             if line.startswith("#name:"):
                                 cluster = line.split(":")[1].strip()
                                 cluster_count += 1
-                                self.group_by_cluster_to_hmm[group_name][cluster] = mod_next()[1].strip()
                                 score = mod_next()[1].strip().split(",")
                                 if len(score) > 1:
                                     score = float(score[0]) - (std_factor * float(score[1]))
@@ -171,18 +211,19 @@ class DataProviderObject:
                                 else:
                                     self.group_by_cluster_to_score_cutoff[group_name][cluster] = float(score[0])
                                 self.group_by_cluster_to_len_confidence[group_name][cluster] = mod_next()[1].strip().split(",")
-                                cons_seq = mod_next()[0]
-                                self.group_by_cluster_to_consensus_length[group_name][cluster] = (len(cons_seq))
-                                self.group_by_cluster_to_consensus_sequence[group_name][cluster] = cons_seq
+                                self.group_by_cluster_to_consensus_sequence[group_name][cluster] = mod_next()[0]
+                                self.group_by_cluster_to_consensus_length[group_name][cluster] = (len(self.group_by_cluster_to_consensus_sequence[group_name][cluster]))
+                                files_not_found = self.validate_path_files(cluster)
+                                if not files_not_found:
+                                    self.group_by_cluster_to_hmm[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".hmmGenePS")
+                                    self.group_by_cluster_to_TN_hmm[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".TN.hmmGenePS")
+                                    self.group_by_cluster_to_fasta[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".fa_GenePS")
+                                else:
+                                    error_list += files_not_found
                             else:
                                 pass
-        if cluster_count != input_scope:
-            print("\t[!] Supposed number of cluster != counted amount of cluster\n")
-            sys.exit()
-        elif cluster_count == 0:
-            print("\t[!] No GenePS files found - please check your input directory in terms of path and file style\n")
-            sys.exit()
-        return input_scope
+        return self.check_loaded_data(cluster_count, input_scope, error_list)
+
 
 
 ########################################################################################################################
@@ -208,7 +249,6 @@ class PredictionObject:
         self.gene_end = None
         self.gene_length = None
         self.fragmented = None
-        self.set_up_region_values()
 
     def set_up_region_values(self):
         self.DNA = grap_values(self.exon_obj.target_dna)[0]
@@ -305,16 +345,16 @@ class Overseer:
         return file_path + ".consensus"
 
     # --> from_header_list_to_fasta
-    def blast_all_consensus(self):
+    def blast_all_consensus(self, out_directory):
         self.merged_regions = 0
         for group in data_base.group_names:
             header_list = list(data_base.group_by_cluster_to_consensus_sequence[group].keys())
-            file_path = os.path.join(tmp_dir, group)
+            file_path = os.path.join(out_directory, group)
             consensus_file = self.from_header_list_to_fasta(header_list, group, file_path)
             if keep:
                 blast_obj = run_tblastn(self.blast_db_path, consensus_file, self.group_to_out_dir[group] + "_intermediate_blast.txt")
             else:
-                blast_obj = run_tblastn(self.blast_db_path, consensus_file, os.path.join(tmp_dir, group))
+                blast_obj = run_tblastn(self.blast_db_path, consensus_file, os.path.join(out_directory, group))
             if blast_obj is not None:
                 blast_obj.infer_regions()
                 self.merged_regions += blast_obj.amount_regions
@@ -339,6 +379,7 @@ class Overseer:
         if score_hash is not None:
             for count, score in score_hash.items():
                 prediction_obj = PredictionObject(results_hash[count][1], results_hash[count][0], score, cutoff, cluster, length_confidence)
+                prediction_obj.set_up_region_values()
                 contig = prediction_obj.contig
                 if score >= cutoff:
                     if prediction_obj.check_for_fragmentation() is False:
@@ -396,14 +437,14 @@ class Overseer:
     # run exonerate on all region -> clusterwise_benchmarking -> contigwise_overplapping_control
     ############################################################################################
 
-    def predict_on_all_regions(self):
+    def predict_on_all_regions(self, out_directory):
         for group in self.group_to_blast_obj:
             for contig in self.group_to_blast_obj[group].inferred_regions:
                 for cluster in self.group_to_blast_obj[group].inferred_regions[contig]:
                     region_count = 1
                     fasta_list = []
                     count_to_exo_to_region, length_hash = {}, {}
-                    file_path = os.path.join(tmp_dir, cluster)
+                    file_path = os.path.join(out_directory, cluster)
                     consensus_file = self.from_header_list_to_fasta([cluster], group, file_path)
                     len_confidence = data_base.group_by_cluster_to_len_confidence[group][cluster]
                     cut_off = data_base.group_by_cluster_to_score_cutoff[group][cluster]
@@ -411,7 +452,7 @@ class Overseer:
                     for region in self.group_to_blast_obj[group].inferred_regions[contig][cluster]:
                         if coverage_filter(region) is True:
                             region_seq = self.group_to_blast_obj[group].region_tuple_to_region_seq[region]
-                            exo_obj = make_prediction(cluster, consensus_file, tmp_dir, region, region_seq, self.g_prefix, group)
+                            exo_obj = make_prediction(cluster, consensus_file, out_directory, region, region_seq, self.g_prefix, group)
                             if exo_obj is None:
                                 self.group_by_cluster_no_prediction_region[group][cluster].append((region.contig, region.s_start, region.s_end))
                                 self.filter_count += 1
@@ -430,8 +471,6 @@ class Overseer:
                         region_count += 1
                     score_hash = clusterwise_prediction_scoring("\n".join(fasta_list), length_hash, hmm)
                     valid_regions_cluster = self.clusterwise_benchmarking(score_hash, count_to_exo_to_region, cut_off, cluster, group, len_confidence)
-                    if valid_regions_cluster == 0:
-                        logger_validate.warning("On contig: {} all predictions for cluster: {} failed scoring - genome: {} group: {}".format(contig, cluster, self.g_prefix, group))
                 amount_overlapp_contig = self.contigwise_overlapping_control(group, contig)
                 self.filter_count += amount_overlapp_contig
         return self.merged_regions - self.filter_count
@@ -516,8 +555,8 @@ class Overseer:
 def locate_all_genes_genome_wise(current_genome, blast_db_path, prediction_out_path):
     overseer_obj = Overseer(current_genome, blast_db_path, prediction_out_path)
     overseer_obj.make_group_directories()
-    amount_merged_regions = overseer_obj.blast_all_consensus()
-    amount_valid_predictions = overseer_obj.predict_on_all_regions()
+    amount_merged_regions = overseer_obj.blast_all_consensus(tmp_dir)
+    amount_valid_predictions = overseer_obj.predict_on_all_regions(tmp_dir)
     written_valid, written_filtered = overseer_obj.write_output()
     if written_valid == amount_valid_predictions and \
                     overseer_obj.filter_count == (amount_merged_regions - amount_valid_predictions):
@@ -534,20 +573,13 @@ def locate_all_genes_genome_wise(current_genome, blast_db_path, prediction_out_p
 if __name__ == "__main__":
     __version__ = 0.1
     args = docopt(__doc__)
-    gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
-    genome = args['--genome']
-    coverage_min = args['--coverage_filer']
-    std_factor = args['--HMM_filter']
-    out_dir = args["--out_dir"]
-    keep = args["--keep"]
-    verbose = args["--verbose"]
 
     #############################
     # read and process input data
     #############################
     print("\n[+] Checking Arguments and Dependencies...")
     check_programs("tblastn", "makeblastdb", "exonerate")
-    genome_dict = check_arguments()
+    genome_dict = check_arguments(args)
     print("   -> Okay\n")
     print("[+] Reading GenePS-Files...")
     data_base = DataProviderObject(gene_ps_results)
@@ -578,16 +610,11 @@ if __name__ == "__main__":
     print("\n\n# {} Genome(s) - {} Group(s) - {} Cluster(s)\n{}\n".format(str(len(g_prefix_to_db_and_out_dir)), str(len(data_base.group_names)), str(cluster_scope), "#"*42))
     log_path = os.path.join(prediction_dir, "LOG.txt")
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename=log_path, filemode='w')
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    if verbose:
+    if verbose is not None:
         formatter = logging.Formatter('\t%(message)s')
         console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
+        logging.getLogger('').addHandler(console)
     logging.info("# Input Directory: {} \n\n".format(gene_ps_results))
-    logger_blast_region = logging.getLogger("RegionFinding")
-    logger_prediction = logging.getLogger("Prediction")
-    logger_validate = logging.getLogger("Benchmarking")
 
     ####################
     # run on all genomes

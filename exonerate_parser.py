@@ -106,7 +106,7 @@ class ExonerateObject:
         del_intron = lambda seq: seq.replace("TargetIntron","")                  # no lambda
         prep_line = lambda line: line.strip("\n").split(": ")[1].strip(" ")
         next_line = lambda: prep_line(next(ex))
-        next_block = lambda size: [next_line() for x in range(0,size)]
+        next_block = lambda size: [next_line() for x in range(0, size)]
 
         read_flag = 0
         with open(exonerate_file, "r") as ex:
@@ -116,7 +116,7 @@ class ExonerateObject:
                         if line.startswith("C4 Alignment"):
                             read_flag = 1
                     elif read_flag == 1:
-                        query, target, model, score= next_block(4)
+                        query, target, model, score = next_block(4)
                         qrange, trange = [tuple(x.split(" -> ")) for x in next_block(2)]
                         self.header[target][trange] = {"model": model, "score": score,
                                                        "qrange": qrange, "query": query}
@@ -133,6 +133,8 @@ class ExonerateObject:
                             self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
                             self.target_dna[target][trange] = "".join(self.target_dna[target][trange])
                             self.target_prot[target][trange] = aacode_3to1("".join(self.target_prot[target][trange]))
+                            if len(self.target_dna[target][trange]) / 3 != len(self.target_prot[target][trange]):
+                                print(self.header[target][trange]["query"], "exonerate length error")
                             if "GFF" in line:
                                 read_flag = 3
                             else:
@@ -156,7 +158,7 @@ def make_exonerate_command(model, query_file, region_file):
     return cmd
 
 
-def safe_exonerate_output(output_path, command):
+def get_exonerate_object(output_path, command):
     line_count = 0
     with open(output_path, "w") as ex:
         for line in run_cmd(command=command, wait=False):
@@ -168,13 +170,15 @@ def safe_exonerate_output(output_path, command):
         return ExonerateObject(output_path)
 
 
+# sometimes the exhaustive command fails due to an exonerate buck
+# if so, try non-exhaustive
 def run_exonerate(name, directory, region, query):
-    cmd = make_exonerate_command("-m p2g:b -E yes", query, region)
+    cmd = make_exonerate_command("-m p2g -E no", query, region)     # "-m p2g:b -E yes" is the best exhaustive command
     out_file = os.path.join(directory, name)
-    exonerate_obj = safe_exonerate_output(out_file, cmd)
-    if safe_exonerate_output(out_file, cmd) is None:
+    exonerate_obj = get_exonerate_object(out_file, cmd)
+    if get_exonerate_object(out_file, cmd) is None:
         cmd = make_exonerate_command("-m p2g -E no", query, region)
-        exonerate_obj = safe_exonerate_output(out_file, cmd)
+        exonerate_obj = get_exonerate_object(out_file, cmd)
     return exonerate_obj
 
 
@@ -184,8 +188,8 @@ if __name__ == "__main__":
 #                  "/home/jgravemeyer/Desktop/test_consensus_eef.fa")
 
     test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
-              "/home/jgravemeyer/Desktop/eef_region_elegans.fa",
-              "/home/jgravemeyer/Desktop/eef_consensus.fa")
+              "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta",
+              "/home/jgravemeyer/Desktop/experiment_data/test_consensus_eef.fa")
 
 
     for target in test.query_prot:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Usage: make_GenePS.py                         -i <FILE> -r <INT> -p <INT> -o <STR> -l <INT> [-q <FILE>]
+Usage: make_Datasets.py                         -i <FILE> -r <INT> -p <INT> -o <STR> -l <INT> [-q <FILE>]
 
     Options:
         -h, --help                            show this screen.
@@ -21,7 +21,7 @@ import tempfile
 from docopt import docopt
 from random import sample
 from run_command import run_cmd, tempdir
-from make_GenePS import ScoreObject, generate_hmm, write_to_tempfile, hash_fasta
+from make_Datasets import ScoreObject, generate_hmm, write_to_tempfile, hash_fasta
 from compute_msa import generate_msa
 sns.set(color_codes=True)
 

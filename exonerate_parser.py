@@ -3,6 +3,7 @@ import re
 import os
 from collections import defaultdict
 from run_command import run_cmd
+
 # if is going to be a parser, deal with softmasking
 
 aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': 'K',
@@ -24,7 +25,6 @@ in an error
         return "".join(single_seq)
     else:
         raise False
-
 
 
 def kill_char(string, n):
@@ -59,24 +59,43 @@ def remove_lower(text_string):
     return re.sub('[a-z]', '', text_string)
 
 
-def grap_values(attribute):
-    out_list = []
-    for query, trange in attribute.items():
-        for i, last_value in trange.items():
-            out_list.append(last_value)
-    return out_list
+def extract_geneps_data(exonerate_obj):
+    """returns a fasta string containing all predicted protein sequences, with query name as header. Additionally
+    a hash will be returned with query as key and sequence length as value"""
+    len_dict = {}
+    fasta_list = []
+    for query in exonerate_obj.query_prot:
+        for trange in exonerate_obj.query_prot[query]:
+            fasta_list.append(">" + query)
+            fasta_list.append(exonerate_obj.target_prot[query][trange])
+            len_dict[">" + query] = len(exonerate_obj.target_prot[query][trange])
+    return "\n".join(fasta_list), len_dict
 
 
-def write_exonerate_gff(gff_list):
+def correct_gene_position(strand, blast_location, exonerate_location):
+    if strand == "-":
+        gene_start = max(blast_location) - min(exonerate_location)
+        gene_end = max(blast_location) - max(exonerate_location)
+    elif strand == "+":
+        gene_start = min(blast_location) + min(exonerate_location)
+        gene_end = min(blast_location) + max(exonerate_location)
+    else:
+        print("[!]\t ERROR: {} can not be identified as + or - strand".format(strand))
+        return None
+    return str(gene_start), str(gene_end)
+
+
+def write_exonerate_gff(gff_list, off_set_tuple, strand):
     last_phase = 0
     new_gff_list = []
     mrna_copy = None
     for line in gff_list:
         line = line.split("\t")
+        if strand != line[6]:
+            print("blast strand != exonerate strand")
+        line[3], line[4] = correct_gene_position(line[6], off_set_tuple, (int(line[3]), int(line[4])))
         if "cds" in line[2]:
-            cds_start = int(line[3])
-            cds_end = int(line[4])
-            current_phase = ((cds_end - cds_start + 1) + last_phase) % 3
+            current_phase = ((abs(int(line[4]) - int(line[3])) + 1) + last_phase) % 3
             line[7] = str(last_phase)
             last_phase = current_phase
         elif "gene" in line[2]:
@@ -118,23 +137,23 @@ class ExonerateObject:
                     elif read_flag == 1:
                         query, target, model, score = next_block(4)
                         qrange, trange = [tuple(x.split(" -> ")) for x in next_block(2)]
-                        self.header[target][trange] = {"model": model, "score": score,
+                        self.header[query][trange] = {"model": model, "score": score,
                                                        "qrange": qrange, "query": query}
                         read_flag = 2
                     elif read_flag == 2:
                         if not line.startswith("#"):
-                            self.query_prot[target][trange].append(del_intron(remove_non_letter_signs(line)))
+                            self.query_prot[query][trange].append(del_intron(remove_non_letter_signs(line)))
                             next(ex)
                             target_prot = next(ex)
                             target_dna = clear_hashed_bases(target_prot, next(ex))
-                            self.target_prot[target][trange].append(remove_non_letter_signs(target_prot))
-                            self.target_dna[target][trange].append(remove_lower(remove_non_letter_signs(target_dna)))
+                            self.target_prot[query][trange].append(remove_non_letter_signs(target_prot))
+                            self.target_dna[query][trange].append(remove_lower(remove_non_letter_signs(target_dna)))
                         else:
-                            self.query_prot[target][trange] = "".join(self.query_prot[target][trange])
-                            self.target_dna[target][trange] = "".join(self.target_dna[target][trange])
-                            self.target_prot[target][trange] = aacode_3to1("".join(self.target_prot[target][trange]))
-                            if len(self.target_dna[target][trange]) / 3 != len(self.target_prot[target][trange]):
-                                print(self.header[target][trange]["query"], "exonerate length error")
+                            self.query_prot[query][trange] = "".join(self.query_prot[query][trange])
+                            self.target_dna[query][trange] = "".join(self.target_dna[query][trange])
+                            self.target_prot[query][trange] = aacode_3to1("".join(self.target_prot[query][trange]))
+                            if len(self.target_dna[query][trange]) / 3 != len(self.target_prot[query][trange]):
+                                print(self.header[query][trange]["query"], "exonerate length error")
                             if "GFF" in line:
                                 read_flag = 3
                             else:
@@ -142,9 +161,8 @@ class ExonerateObject:
                     elif read_flag == 3:
                         if not line.startswith("#"):
                             line = line.strip("\n")
-                            self.gff[target][trange].append(line)
+                            self.gff[query][trange].append(line)
                         elif "END OF GFF DUMP" in line:
-                            self.gff[target][trange] = write_exonerate_gff(self.gff[target][trange])
                             read_flag = 0
                     else:
                         pass
@@ -158,13 +176,33 @@ def make_exonerate_command(model, query_file, region_file):
     return cmd
 
 
+#### getting query from fasta hash ans writing new output file within the tmp file function
+def exonerate_best_raw_score(model, query_file, region_file):
+    cmd = make_exonerate_command(model, query_file, region_file)
+    read_flag = 0
+    hit_dict, query = {}, None
+    for line in run_cmd(command=cmd, wait=False):
+        line = line.strip("\n")
+        if line.startswith("C4 Alignment"):
+            read_flag = 1
+        elif read_flag == 1 and "Query" in line:
+            query = line.split(": ")[1]
+        elif read_flag == 1 and "Raw score" in line:
+            hit_dict[query] = line.split(": ")[1]
+            read_flag = 0
+    if hit_dict:
+        return max(hit_dict, key=lambda key: hit_dict[key])
+    else:
+        return None
+
+
 def get_exonerate_object(output_path, command):
     line_count = 0
     with open(output_path, "w") as ex:
         for line in run_cmd(command=command, wait=False):
             ex.write(line)
             line_count += 1
-    if line_count < 20:
+    if line_count < 10:
         return None
     else:
         return ExonerateObject(output_path)
@@ -172,36 +210,24 @@ def get_exonerate_object(output_path, command):
 
 # sometimes the exhaustive command fails due to an exonerate buck
 # if so, try non-exhaustive
-def run_exonerate(name, directory, region, query):
-    cmd = make_exonerate_command("-m p2g -E no", query, region)     # "-m p2g:b -E yes" is the best exhaustive command
+def run_exonerate(mode_string, name, directory, region, query):
+    cmd = make_exonerate_command(mode_string, query, region)     # "-m p2g:b -E yes" is the best exhaustive command
     out_file = os.path.join(directory, name)
     exonerate_obj = get_exonerate_object(out_file, cmd)
-    if get_exonerate_object(out_file, cmd) is None:
+    if get_exonerate_object(out_file, cmd) is None and "-E yes" in mode_string:
         cmd = make_exonerate_command("-m p2g -E no", query, region)
         exonerate_obj = get_exonerate_object(out_file, cmd)
     return exonerate_obj
 
 
 if __name__ == "__main__":
-#    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
-#                  "/home/jgravemeyer/Desktop/blast_region.fasta",
-#                  "/home/jgravemeyer/Desktop/test_consensus_eef.fa")
+    test = run_exonerate("-m p2g -E no", "test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
+                  "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta",
+                  "/home/jgravemeyer/Desktop/experiment_data/eef_consensus.fa")
 
-    test = run_exonerate("test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
-              "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta",
-              "/home/jgravemeyer/Desktop/experiment_data/test_consensus_eef.fa")
+    test_raw_score = exonerate_best_raw_score("-m p2g -E no", "/home/jgravemeyer/Desktop/experiment_data/eef_consensus.fa", "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta")
+    print(test_raw_score)
+#    print("\n".join(test.gff["eef_3.5"][('5000', '7747')]))
+#    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+"))
+#    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+")[0].split("\t")[3:5])
 
-
-    for target in test.query_prot:
-        print(list(test.query_prot[target].keys())[0])
-        for trange in test.query_prot[target]:
-            print(">" + test.header[target][trange]["query"])
-            print(test.target_prot[target][trange])
-            print("\n".join(test.gff[target][trange]))
-'''
-    print(grap_values(test.header)[0].values())
-    print(grap_values(test.target_prot))
-    print(grap_values(test.target_dna))
-    print(grap_values(test.query_prot))
-    print(grap_values(test.gff))
-'''

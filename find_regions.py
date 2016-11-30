@@ -116,7 +116,7 @@ class BlastObject:
         self.flanking_distance = flanking_dist
         self.inferred_regions = None
         self.amount_regions = None
-        self.region_tuple_to_region_seq = {}
+        self.region_tuple_to_fasta = {}
 
     def adjust_oversized_end_pos(self, region_seq, start_position):
         return len(region_seq) + start_position - 1
@@ -147,7 +147,7 @@ class BlastObject:
                     region = Region(contig=subject, s_start=s_start, s_end=s_end, strand=strand,
                                     chunk_cov=chunk_cov, query_cov=query_cov, q_len=hits.q_len[0])
                     inferred_regions[subject][query].append(region)
-                    self.region_tuple_to_region_seq[region] = ">{};{}-{}\n{}".format(subject, s_start, s_end, fasta_str)
+                    self.region_tuple_to_fasta[region] = ">{}\n{}".format(subject, fasta_str)
         self.inferred_regions = inferred_regions
 
 
@@ -203,5 +203,5 @@ if __name__ == "__main__":
             for region_x in blast.inferred_regions[contig][query]:
                 results = region_blast = parse_blastdb(db, contig, region_x.s_start, region_x.s_end)
                 print(region_x)
-                print(blast.region_tuple_to_region_seq[region_x])
+                print(blast.region_tuple_to_fasta[region_x])
 

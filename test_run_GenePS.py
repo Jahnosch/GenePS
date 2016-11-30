@@ -5,7 +5,7 @@ from unittest.mock import patch
 from run_command import tempdir
 import run_GenePS
 from find_regions import read_blast_output, HspListObject
-from exonerate_parser import remove_non_letter_signs, clear_hashed_bases, grap_values, aacode_3to1, ExonerateObject
+from exonerate_parser import remove_non_letter_signs, clear_hashed_bases, aacode_3to1, ExonerateObject
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 test_data = os.path.join(script_path, "test_data")
@@ -101,9 +101,6 @@ class TestExonerateObject(unittest.TestCase):
     def test_dna_length(self):
         self.assertEqual(2481, len(self.target_dna_hash))
         self.assertEqual(2883, len(self.target_dna2))
-
-    def test_grap_values(self):
-        self.assertEqual({2481, 2883}, set([len(x) for x in grap_values(self.exonerate_obj.target_dna)]))
 
     def test_gff_before_rewriting(self):
         first_element = 'I;9859005-9873867\texonerate:protein2genome:bestfit\tgene\t4792\t9857\t485\t+\t.\tgene_id 0 ; sequence eef_3.5 ; gene_orientation +'
@@ -203,7 +200,7 @@ class TestOverlapp(unittest.TestCase):
             pred_obj = run_GenePS.PredictionObject("test", "fake", "wayne", "still_test", names[score], "fake2")
             pred_obj.score = score
             pred_obj.contig = "I"
-            self.overseer.group_by_contig_by_position_to_passed_prediction["group"]["I"].append(pred_obj)
+            self.overseer.group_by_contig_to_passed_prediction_list["group"]["I"].append(pred_obj)
 
     def overlapp_side_effect(self, pred):
         overlapping_pred = ["zero", "two", "four"]

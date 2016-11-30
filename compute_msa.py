@@ -33,15 +33,15 @@ class MsaObject:
         self.msa_list = msa_list
         self.cluster_name = cluster_name
         self.name = cluster_name + ".msaGenePS"
-        self.path = os.path.join(output_dir, self.name)
+        self.file_path = os.path.join(output_dir, self.name)
 
         self.size_history = [len(self.msa_list) / 2]
         self.lengths_history = [len(self.msa_list[1])]
-        self.cmd_trim_remove = "trimal -in " + self.path + " -resoverlap 0.70 -seqoverlap 70"
-        self.cmd_trim_length = "trimal -in " + self.path + " -automated1"
+        self.cmd_trim_remove = "trimal -in " + self.file_path + " -resoverlap 0.55 -seqoverlap 80" #70 70
+        self.cmd_trim_length = "trimal -in " + self.file_path + " -automated1"
 
     def msa_to_fasta(self):
-        with open(self.path, "w") as m:
+        with open(self.file_path, "w") as m:
             m.write("\n".join(self.msa_list) + "\n")
 
     def trim_remove(self):
@@ -57,8 +57,9 @@ class MsaObject:
         self.lengths_history.append(len(self.msa_list[1]))
         self.msa_to_fasta()
 
-    def re_align(self, fasta_file):
-        self.msa_list = generate_msa(fasta_file)
+    def re_align(self, file_path):
+        """writes given fasta hash to tmp file and generates new MSA. The old MSA will be overwritten"""
+        self.msa_list = generate_msa(file_path)
         self.size_history.append(len(self.msa_list) / 2)
         self.lengths_history.append(len(self.msa_list[1]))
         self.msa_to_fasta()

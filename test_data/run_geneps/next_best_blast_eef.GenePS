@@ -1,6 +1,6 @@
 group: next_best_blast_eef
 group_size: 5
-single_copy_ortholog: True
+single_copy_ortholog: False
 #name: OrthologousGroups_I3.5.OG0000365.txt
 #score_cut_off: 0.5434471058966747
 #length_mean_std: 173.88032558218816,793.9793235406189

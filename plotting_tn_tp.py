@@ -18,6 +18,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from docopt import docopt
+import make_Datasets
 
 from run_command import run_cmd
 
@@ -79,30 +80,19 @@ def analise_membership(score_hash):
     return group_hash
 
 
-def find_intersection(m_p, m_n, std_p, std_n):
-    a = 1/(2 * std_p ** 2) - 1 / (2 * std_n ** 2)
-    b = m_n / (std_n ** 2) - m_p / (std_p ** 2)
-    c = m_p ** 2 / (2 * std_p ** 2) - m_n ** 2 / (2 * std_n ** 2) - np.log(std_n / (2*std_p))
-    intersection = np.roots([a, b, c])
-    sorted_no_negative = sorted([x for x in intersection if not x < 0], reverse=True)
-    for point in sorted_no_negative:
-        if point < m_p:
-            return point
-
-
 def tp_vs_tn_plot(tp_list, tn_list):
-    m_tp, std_tp = np.mean(tp_list), np.std(tp_list)
-    m_tn, std_tn = np.mean(tn_list), np.std(tn_list)
-    intersection = find_intersection(m_tp, m_tn, std_tp, std_tn)
+    m_tp, std_tp = np.mean(tp_list), np.std(tp_list, ddof=1)
+    m_tn, std_tn = np.mean(tn_list), np.std(tn_list, ddof=1)
+    print(m_tp, m_tn, std_tp, std_tn)
+    intersection = make_Datasets.find_intersection(m_tp, m_tn, std_tp, std_tn)
     if len(tn_list) >= 4:
-        single_inter = intersection
-    else:
-        if std_tp >= (m_tp/3):
-            single_inter = m_tp - std_tp
+        if intersection:
+            single_inter = intersection
         else:
-            single_inter = m_tp - (2*std_tp)
-    print(m_tp, std_tp)
-    print(single_inter)
+            single_inter = min(tp_list)
+    else:
+        single_inter = min(tp_list)
+    print(intersection, single_inter, min(tp_list), len(tn_list))
     sns.distplot(tp_list, hist=False, rug=True, color="r", label="Scores within cluster")
     sns.distplot(tn_list, hist=False, rug=True, color="b", label="Scores next best BLAST hits")
     plt.axvline(x=single_inter, linewidth=2, color="k")

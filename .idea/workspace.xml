@@ -1,35 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="..">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/compile_script/eef_hmmer_search.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.TN.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.fa_GenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0001685.txt.TN.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0001685.txt.fa_GenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0001685.txt.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0002137.txt.TN.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0002137.txt.fa_GenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0002137.txt.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/eef_3.5.TN.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/eef_3.5.fa_GenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/eef_3.5.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.TN.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.fa_GenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_graph.pdf" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/check_accuracy.py" afterPath="$PROJECT_DIR$/mafft_option_plot.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compute_msa.py" afterPath="$PROJECT_DIR$/compute_msa.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/exonerate_parser.py" afterPath="$PROJECT_DIR$/exonerate_parser.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/make_Datasets.py" afterPath="$PROJECT_DIR$/make_Datasets.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_command.py" afterPath="$PROJECT_DIR$/run_command.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_make_Datasets.py" afterPath="$PROJECT_DIR$/test_make_Datasets.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testfield.py" afterPath="$PROJECT_DIR$/testfield.py" />
-    </list>
+    <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment=".." />
     <ignored path="GenePS.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -142,8 +114,8 @@
       <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/run_GenePS.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="203">
-              <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
+            <state relative-caret-position="401">
+              <caret line="251" column="30" selection-start-line="251" selection-start-column="30" selection-end-line="251" selection-end-column="30" />
               <folding>
                 <element signature="e#1193#1202#0" expanded="true" />
               </folding>
@@ -196,16 +168,16 @@
         <option value="$PROJECT_DIR$/mafft_option_plot.py" />
         <option value="$PROJECT_DIR$/compute_msa.py" />
         <option value="$PROJECT_DIR$/make_Datasets.py" />
-        <option value="$PROJECT_DIR$/run_GenePS.py" />
         <option value="$PROJECT_DIR$/run_command.py" />
         <option value="$PROJECT_DIR$/Genblast_wrapper.py" />
+        <option value="$PROJECT_DIR$/run_GenePS.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="65" />
+    <option name="x" value="1920" />
     <option name="y" value="-4" />
-    <option name="width" value="1855" />
+    <option name="width" value="1920" />
     <option name="height" value="1084" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
@@ -572,13 +544,13 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <frame x="1920" y="-4" width="1920" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11899564" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11491829" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4390244" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28963414" sideWeight="0.49423522" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.14939025" sideWeight="0.49423522" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39939025" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -978,8 +950,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="203">
-          <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
+        <state relative-caret-position="401">
+          <caret line="251" column="30" selection-start-line="251" selection-start-column="30" selection-end-line="251" selection-end-column="30" />
           <folding>
             <element signature="e#1193#1202#0" expanded="true" />
           </folding>

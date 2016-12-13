@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 from run_command import run_cmd
 
+
 # if is going to be a parser, deal with softmasking
 
 aa3_to_1_coding_dict = {'Cys': 'C', 'Asp': 'D', 'Ser': 'S', 'Gln': 'Q', 'Lys': 'K',
@@ -59,17 +60,14 @@ def remove_lower(text_string):
     return re.sub('[a-z]', '', text_string)
 
 
-def extract_geneps_data(exonerate_obj):
-    """returns a fasta string containing all predicted protein sequences, with query name as header. Additionally
-    a hash will be returned with query as key and sequence length as value"""
-    len_dict = {}
+def extract_protein_fasta_string(exonerate_obj):
+    """returns a fasta string containing all predicted protein sequences, with query name as header."""
     fasta_list = []
     for query in exonerate_obj.query_prot:
         for trange in exonerate_obj.query_prot[query]:
             fasta_list.append(">" + query)
             fasta_list.append(exonerate_obj.target_prot[query][trange])
-            len_dict[">" + query] = len(exonerate_obj.target_prot[query][trange])
-    return "\n".join(fasta_list), len_dict
+    return "\n".join(fasta_list)
 
 
 def correct_gene_position(strand, blast_location, exonerate_location):
@@ -221,13 +219,13 @@ def run_exonerate(mode_string, name, directory, region, query):
 
 
 if __name__ == "__main__":
-    test = run_exonerate("-m p2g -E no", "test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
+    test = run_exonerate("-m p2g:b -E yes", "test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data",
                   "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta",
                   "/home/jgravemeyer/Desktop/experiment_data/eef_consensus.fa")
 
-    test_raw_score = exonerate_best_raw_score("-m p2g -E no", "/home/jgravemeyer/Desktop/experiment_data/eef_consensus.fa", "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta")
-    print(test_raw_score)
-#    print("\n".join(test.gff["eef_3.5"][('5000', '7747')]))
-#    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+"))
-#    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+")[0].split("\t")[3:5])
+    #test_raw_score = exonerate_best_raw_score("-m p2g -E no", "/home/jgravemeyer/Desktop/experiment_data/eef_consensus.fa", "/home/jgravemeyer/Desktop/experiment_data/blast_region.fasta")
+    #print(test_raw_score)
+    print("\n".join(test.gff["eef_3.5"][('5000', '7747')]))
+    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+"))
+    print(write_exonerate_gff(test.gff["eef_3.5"][('5000', '7747')], (9158949, 9171695), "+")[0].split("\t")[3:5])
 

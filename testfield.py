@@ -1,58 +1,84 @@
 #!/usr/bin/env python3
-from make_Datasets import hash_fasta, write_hash_to_fasta
-from operator import itemgetter
-trimed_fasta = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/lethal_clusters_out/glb1_3.5.fa_GenePS"
-fasta_hash = hash_fasta(trimed_fasta)
+import compute_msa
+import make_Datasets
+import tempfile as tmp
+import os
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+#true_header = set(make_Datasets.hash_fasta(eef_inf5_clean).keys())
+eef_inf5_polluted = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/eef_polluted_20eftu2.mafft"
+
+eef_inf5_clean = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/eef_clean_inf5.0.mafft"
+eef5_start_header = set(make_Datasets.hash_fasta(eef_inf5_clean).keys())
+eef_4_0_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/eef_inf4.0.mafft"
+eef_3_5_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/eef_inf3.5.mafft"
+eef_2_0_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/eef_inf2.0.mafft"
+
+W04_5_0_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/OrthologousGroups_I5.0.OG0003142_W04E12.mafft"
+W04_5_start_header = set(make_Datasets.hash_fasta(W04_5_0_path).keys())
+W04_4_0_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/OrthologousGroups_I4.0.OG0003238_W04E12.mafft"
+W04_3_5_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/OrthologousGroups_I3.5.OG0003256_W04E12.mafft"
+W04_2_0_path = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf5/trimming_test/OrthologousGroups_I2.0.OG0002785_W04E12.mafft"
+
+'''
+mpl.rcParams['legend.fontsize'] = 10
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+z = range(50, 70, 10)
+x = range(50, 70, 10)
+y = range(50, 70, 10)
+ax.plot(x, y, z, label='bla')
+ax.legend()
+
+plt.show()
+'''
+
+resoverlap = range(20, 60, 5)#range(10, 100, 10)
+seqoverlap = range(50, 100, 5)
+
+x_values, y_values = [], []
+trim_eef_clean, trim_remaining_true_polluted = [],[]
+W04E12_inf5, W04E12_overlap, W04E12_inf2_left = [], [], []
+eef_inf5, eef_overlap, eef_inf2_left, eef_polluted_overlap = [], [], [], []
+for resover in resoverlap:
+    resover = (resover / 100)
+    for seqover in seqoverlap:
+        x_values.append(resover)
+        y_values.append(seqover)
+        print(resover, seqover)
+        eef_5 = compute_msa.msa_operations("trimal -in {} -resoverlap {} -seqoverlap {}".format(eef_inf5_clean, resover, seqover))
+        eef_5 = [eef_5[x] for x in range(0, len(eef_5), 2)]
+        eef_2 = compute_msa.msa_operations("trimal -in {} -resoverlap {} -seqoverlap {}".format(eef_2_0_path, resover, seqover))
+        eef_2 = [eef_2[x] for x in range(0, len(eef_2), 2)]
+        eef_polluted = compute_msa.msa_operations("trimal -in {} -resoverlap {} -seqoverlap {}".format(eef_inf5_polluted, resover, seqover))
+        eef_polluted = [eef_polluted[x] for x in range(0, len(eef_polluted), 2)]
+        eef_polluted_overlap.append(len(set(eef5_start_header) & set(eef_polluted))/len(eef_polluted))
+        eef_inf5.append(len(eef_5)/237)
+        eef_overlap.append(len(set(eef5_start_header) & set(eef_2))/len(eef_2))
+        eef_inf2_left.append(len(eef_2)/410)
+        print("eef", len(eef_5)/237, len(set(eef5_start_header) & set(eef_2))/len(eef_2))
+
+        W04_5 = compute_msa.msa_operations("trimal -in {} -resoverlap {} -seqoverlap {}".format(W04_5_0_path, resover, seqover))
+        W04_5 = [W04_5[x] for x in range(0, len(W04_5), 2)]
+        W04_2 = compute_msa.msa_operations("trimal -in {} -resoverlap {} -seqoverlap {}".format(W04_2_0_path, resover, seqover))
+        W04_2 = [W04_2[x] for x in range(0, len(W04_2), 2)]
+        W04E12_inf5.append(len(W04_5)/142)
+        W04E12_overlap.append(len(set(W04_5_start_header) & set(W04_2))/len(W04_2))
+        W04E12_inf2_left.append(len(W04_2)/158)
+        print("W04E12", len(W04_5)/142, len(set(W04_5_start_header) & set(W04_2))/len(W04_2))
 
 
-def estimate_bin_number(k_guess, k_min, amount_data, forced_bins=None):
-    """takes a guess for k = bin number, a specified 'minimum bin number' and the total amount of data points.
-    The function checks if more bins then actual data points are demanded and that k_guess is higher then k_min.
-    Binning can also be forced but not below #data points."""
-    if k_min > amount_data:
-        return amount_data
-    elif forced_bins:
-        return forced_bins
-    elif k_guess < k_min:
-        return k_min
-    else:
-        return k_guess
-
-#os.path.join(output_dir, file_name + ".fa_GenePS")
-def bin_sequence_lengths(length_dict, bins=None):
-    """takes a dictionary with fasta header as key and sequence lengths as values. k = number of bins, default max/25
-    since the smallest protein is a bit above 20.Returns a collapsed dict using bins as keys, pointing to the header
-    of the longest sequence representing that bin."""
-    highest_member_dict = {}
-    min_L, max_L = min(length_dict.values()), max(length_dict.values())
-    k = estimate_bin_number(round(max_L / 25), 3, len(length_dict), forced_bins=bins)
-    b_width = round((max_L - min_L) / k)
-    for header, L in sorted(length_dict.items(), key=itemgetter(1)):
-        for bin_x in range(1, k+1):
-            if bin_x == 1 and L <= min_L + b_width:
-                highest_member_dict[bin_x] = header
-            elif bin_x == k and L > min_L + (k * b_width):
-                highest_member_dict[bin_x] = header
-            elif min_L + ((bin_x-1) * b_width) < L <= min_L + (bin_x * b_width):
-                highest_member_dict[bin_x] = header
-    return highest_member_dict
-
-
-def write_length_binned_fasta(fasta_dict, cluster_name, location):
-    """takes a dictionary in in style of {'fasta_header':sequence} and outputs
-    a fasta file with header in style of {'>cluster_name_bin': sequence} at the specified 'location'."""
-    length_hash = {header: len(seq[0]) for header, seq in fasta_hash.items()}
-    bin_to_header = bin_sequence_lengths(length_hash)
-    bin_to_sequence = {bin_x: fasta_dict[header] for bin_x, header in bin_to_header.items()}
-    write_hash_to_fasta(location, bin_to_sequence, ">{}_" + cluster_name + "\n" + "{}\n")
-    return length_hash
-
-
-print(bin_sequence_lengths({"0":0, "4": 4, "12": 12, "16a": 16, "16b": 16, "18": 18, "24": 24, "26": 26, "28": 28}, 3))
-#binned_dict_to_fasta(member_dict, fasta_hash, "glb", "adf")
-
-
-#print(write_length_binned_fasta(fasta_hash, "glb", "/home/jgravemeyer/Desktop/glb.fasta"))
-#print(estimate_bin_number(4, 3, 9))
-
-
+x = range(0, len(x_values), 1)
+plt.plot(x, W04E12_inf5, label="W04E12 remaining in inf5", color="r")
+plt.plot(x, W04E12_overlap, label="W04E12 overlap inf5 and inf2", color="r", linestyle="dashed")
+plt.plot(x, W04E12_inf2_left, label="W04E12 inf2 left", color="r", linestyle="dotted")
+plt.plot(x, eef_inf5, label="EFalpha remaining in inf5", color="b")
+plt.plot(x, eef_overlap, label="EFalpha overlap inf5 and inf2", color="b", linestyle="dashed")
+plt.plot(x, eef_inf2_left, label="EFalpha inf2 left", color="b", linestyle="dotted")
+plt.plot(x, eef_polluted_overlap, label="EFalpha plus wrong sequences", color="g", linestyle="dotted")
+plt.show()

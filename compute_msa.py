@@ -24,7 +24,7 @@ def msa_operations(command):
 
 
 def generate_msa(fasta):
-    command = "mafft " + fasta
+    command = "einsi " + fasta
     return msa_operations(command)
 
 
@@ -37,7 +37,7 @@ class MsaObject:
 
         self.size_history = [len(self.msa_list) / 2]
         self.lengths_history = [len(self.msa_list[1])]
-        self.cmd_trim_remove = "trimal -in " + self.file_path + " -resoverlap 0.55 -seqoverlap 80" #70 70
+        self.cmd_trim_remove = "trimal -in " + self.file_path + " -resoverlap 0.50 -seqoverlap 75" #70 70
         self.cmd_trim_length = "trimal -in " + self.file_path + " -automated1"
 
     def msa_to_fasta(self):
@@ -71,7 +71,7 @@ class MsaObject:
         return [self.msa_list[x] for x in range(1, len(self.msa_list), 2)]
 
     def check_msa_size_and_length(self):
-        if self.size_history[-1] < 2 \
+        if self.size_history[-1] < 3 \
                 or ((self.size_history[0] - self.size_history[-1]) / self.size_history[0]) > 50:
             print("\t[!] '{}' : NO MSA computable - only {} proteins remained after filtering\n".format(self.cluster_name, self.size_history[-1]))
             return False

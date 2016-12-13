@@ -25,7 +25,7 @@ import logging
 import tempfile as tmp
 from docopt import docopt
 from run_command import tempdir, check_programs
-from exonerate_parser import run_exonerate, ExonerateObject, extract_geneps_data, write_exonerate_gff, exonerate_best_raw_score
+from exonerate_parser import run_exonerate, ExonerateObject, extract_protein_fasta_string, write_exonerate_gff, exonerate_best_raw_score
 from find_regions import run_tblastn, make_blast_db
 from collections import defaultdict
 from make_Datasets import get_phmm_score, write_to_tempfile, get_outdir, hash_fasta, write_hash_to_fasta
@@ -117,14 +117,14 @@ def convert_summary_to_string(summary_array):
     return "\n".join(summary_list)
 
 
-def markov_model_scoring(fasta_string, length_dict, hmm):
-    with tmp.NamedTemporaryFile() as ex_file:
-        write_to_tempfile(ex_file.name, fasta_string)
-        normalized_score_hash = get_phmm_score(hmm, ex_file.name, header_to_length=length_dict)
-    if normalized_score_hash is not None:
-        return normalized_score_hash
-    else:
-        return None
+def markov_model_scoring(fasta_string, hmm):
+    if hmm:
+        with tmp.NamedTemporaryFile() as ex_file:
+            write_to_tempfile(ex_file.name, fasta_string)
+            normalized_score_hash = get_phmm_score(hmm, ex_file.name)
+        if normalized_score_hash is not None:
+            return normalized_score_hash
+    return None
 
 
 def write_merged_region_to_intermediate(blast_ob):
@@ -147,7 +147,7 @@ def exonerate_prediction(region_fasta, query_fasta, dir_path):
             with tmp.NamedTemporaryFile() as q_file:
                 write_to_tempfile(q_file.name, ">{}\n{}".format(best_align_score_query, fasta_hash[">{}".format(best_align_score_query)][0]))
                 ex_name = "{}.exon".format(q_file.name)
-                ex_obj = run_exonerate("-m p2g:b -E yes", ex_name, dir_path, reg_file.name, q_file.name)
+                ex_obj = run_exonerate("-m p2g -E yes", ex_name, dir_path, reg_file.name, q_file.name)
                 return ex_obj
     return None
 
@@ -215,9 +215,9 @@ class DataProviderObject:
                                 self.group_by_cluster_to_score_cutoff[group_name][cluster] = cutoff_factor * float(score[0])
                                 self.group_by_cluster_to_len_confidence[group_name][cluster] = mod_next()[1].strip().split(",")
                                 self.group_by_cluster_to_consensus_sequence[group_name][cluster] = mod_next()[0]
-                                try:
+                                if os.path.exists(os.path.join(self.gene_ps_results, cluster + ".TN_hmm")):
                                     self.group_by_cluster_to_TN_hmm[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".TN_hmm")
-                                except FileNotFoundError:
+                                else:
                                     self.group_by_cluster_to_TN_hmm[group_name][cluster] = None
                                 files_not_found = self.validate_path_files(cluster)
                                 if not files_not_found:
@@ -386,9 +386,9 @@ class Overseer:
 
     def regional_prediction_filter(self, group, cluster, exo_obj, region_x):
         passed_pred = False
-        prediction_fasta, length_hash = extract_geneps_data(exo_obj)
-        TP_scores = markov_model_scoring(prediction_fasta, length_hash, data_base.group_by_cluster_to_hmm[group][cluster])
-        TN_scores = markov_model_scoring(prediction_fasta, length_hash, data_base.group_by_cluster_to_TN_hmm[group][cluster]) # what if no TN Hmm ?
+        prediction_fasta = extract_protein_fasta_string(exo_obj)
+        TP_scores = markov_model_scoring(prediction_fasta, data_base.group_by_cluster_to_hmm[group][cluster])
+        TN_scores = markov_model_scoring(prediction_fasta, data_base.group_by_cluster_to_TN_hmm[group][cluster])
         if TP_scores:
             best_pred_key = max(TP_scores, key=lambda key: TP_scores[key])
             pred_obj = PredictionObject(region_x, TP_scores[best_pred_key], cluster, data_base.group_by_cluster_to_score_cutoff[group][cluster], data_base.group_by_cluster_to_len_confidence[group][cluster])

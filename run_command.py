@@ -15,9 +15,10 @@ def run_cmd(**kwargs):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          universal_newlines=True,
-                         bufsize=-1) # buffersize of system
+                         bufsize=-1)
     wait = kwargs.get('wait', False)
     if wait:
+        stream_data = p.communicate()[0]
         p.wait()
         if p.returncode == 0:
             pass

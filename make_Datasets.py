@@ -20,6 +20,7 @@ import os
 import sys
 import tempfile as tmp
 import logging
+import time
 from operator import itemgetter
 from collections import defaultdict
 from run_command import run_cmd, tempdir, check_programs
@@ -44,28 +45,31 @@ if import_errors:
 
 def hash_fasta(fasta_file):
     """takes sting to fasta file and returns a dictionary in style of: >header:[ADFASDF]"""
-    fasta = {}
-    active_sequence_name = ""
-    with open(fasta_file) as file_one:
-        for line in file_one:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith(">"):
-                active_sequence_name = line.split(" ")[0]
-                if active_sequence_name not in fasta:
-                    fasta[active_sequence_name] = []
-                continue
-            sequence = line
-            fasta[active_sequence_name].append(sequence)
-    file_one.close()
-    return fasta
+    try:
+        fasta = {}
+        active_sequence_name = ""
+        with open(fasta_file) as file_one:
+            for line in file_one:
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith(">"):
+                    active_sequence_name = line.split(" ")[0]
+                    if active_sequence_name not in fasta:
+                        fasta[active_sequence_name] = []
+                    continue
+                sequence = line
+                fasta[active_sequence_name].append(sequence)
+        file_one.close()
+        return fasta
+    except KeyError:
+        return None
 
 
 def check_and_hash_fasta(fasta_file, file_name):
     """wrapper for hash_fasta function to check if hash has sufficient entries"""
     fasta_dict = hash_fasta(fasta_file)
-    if len(fasta_dict) <= 2:
+    if fasta_dict and len(fasta_dict) <= 2:
         logger_Filtered.warning("INPUT ERROR: '{}' - has less than 2 sequences\n".format(file_name))
         return None
     else:
@@ -75,11 +79,11 @@ def check_and_hash_fasta(fasta_file, file_name):
 def clean_fasta_hash(old_hash, key_list):
     """returns a new hash which takes all entries from the old hash if they are present in the key_list"""
     clean_dict = {}
-    for header in key_list:
-        try:
+    for header in old_hash:
+        if header in key_list:
             clean_dict[header] = old_hash[header]
-        except KeyError:
-            continue
+        else:
+            logger_Filtered.warning("{} Filtered from Cluster".format(header))
     return clean_dict
 
 
@@ -139,7 +143,7 @@ def write_length_binned_fasta(fasta_dict, cluster_name, location):
         raise AttributeError("! No length hash")
     bin_to_header = bin_sequence_lengths(length_hash)
     bin_to_sequence = {bin_x: fasta_dict[header] for bin_x, header in bin_to_header.items()}
-    write_hash_to_fasta(location, bin_to_sequence, ">{}_" + cluster_name + "\n" + "{}\n")
+    file_path = write_hash_to_fasta(location, bin_to_sequence, ">{}_" + cluster_name + "\n" + "{}\n")
     return length_hash
 
 
@@ -205,6 +209,14 @@ def find_intersection(m_p, m_n, std_p, std_n):
         return None
 
 
+def calculate_length_range(length_dict):
+    """returns tuple (mean-std, mean+std) of length"""
+    std_len = std(list(length_dict.values()), ddof=1)
+    average_len = mean(list(length_dict.values()))
+    length_distribution_parameters = (round(average_len - std_len), round(average_len + std_len))
+    return length_distribution_parameters
+
+
 ########################################################################################################################
 # Global Functions: HMM related functions
 ########################################################################################################################
@@ -217,30 +229,26 @@ def generate_hmm(hmm_path, msa_path):
     return hmm_path
 
 
-def get_phmm_score(hmm_file, query_file, header_to_length=None):
+def get_phmm_score(hmm_file, query_file):
     """aligns query-fasta-file against HMM and returns a score hash in style of >header:score.
-    If dictionary >header:len(seq) is provided, it directly length-normalizes the score for each protein"""
-    command = ["hmmsearch", "--noali", hmm_file, query_file]
-    read_counter = 0
-    name_to_score = {}
-    for line in run_cmd(command=command, wait=False):
-        if "E-value" in line or read_counter == 1:
-            read_counter += 1
-        elif read_counter == 2:
+    The score is defined by: sum(score domains)/Ndomains * sum(DOMAINend-DOMAINstart/query_lengt, ...)"""
+    final_score_hash = {}
+    with tmp.NamedTemporaryFile() as domtblout:
+        command = ["hmmsearch", "--domtblout", domtblout.name, "--noali", hmm_file, query_file]
+        run_cmd(command=command, wait=True)
+        final_score_hash = parse_hmmer_domain_table(domtblout.name)
+    return final_score_hash
+
+
+def parse_hmmer_domain_table(hmmer_table):
+    score_dict = defaultdict(list)
+    coverage_dict = defaultdict(float)
+    for line in open(hmmer_table):
+        if not line.startswith("#"):
             line = line.strip("\n").split()
-            if len(line) > 0:
-                try:
-                    sequence_header = ">" + line[8].strip()
-                    if header_to_length:
-                        length = header_to_length[sequence_header]
-                        name_to_score[sequence_header] = (round(float(line[1])) / length)
-                    else:
-                        name_to_score[sequence_header] = (round(float(line[1])))
-                except ValueError or IndexError:
-                    print("VALUE ERROR or IndexError\n", line)
-                    return name_to_score
-            else:
-                return name_to_score
+            score_dict[">" + line[0]].append(float(line[13]))
+            coverage_dict[">" + line[0]] += (float(line[18]) - float(line[17])) / float(line[2])
+    return {header: round((sum(score)/len(score)) * coverage_dict[header]) for header, score in score_dict.items()}
 
 
 def get_consensus(hmm_file):
@@ -400,7 +408,6 @@ class ScoreObject:
         self.fasta_hash = fasta_dict
         self.hmm_path = hmm_path
         self.score_dict = {}
-        self.length_dict = {}
         self.score_distribution_parameters = None
         self.length_distribution_parameters = None
 
@@ -408,17 +415,6 @@ class ScoreObject:
         """returns a fasta string for one single given header"""
         query = query.split()[0]
         return query + "\n" + "".join(self.fasta_hash[query])
-
-    def seq_length_hash(self):
-        for header in self.fasta_hash:
-            self.length_dict[header] = len(self.fasta_hash[header][0])
-
-    def calculate_length_distribution_parameters(self):
-        """returns tuple (mean-std, mean+std) of length"""
-        std_len = std(list(self.length_dict.values()), ddof=1)
-        average_len = mean(list(self.length_dict.values()))
-        self.length_distribution_parameters = (average_len - std_len, average_len + std_len)
-        return self.length_distribution_parameters
 
     def calculate_score_distribution_parameters(self, true_negative_scores=None):
         """calculates score parameters either for TP distribution or TN and TP. If both, cutoff will be intersection point
@@ -428,6 +424,9 @@ class ScoreObject:
         score_list = list(self.score_dict.values())
         tp_std = std(score_list, ddof=1)
         tp_average = mean(score_list)
+        if len(self.score_dict) < 5:
+            self.score_distribution_parameters = tp_average/2
+            return self.score_distribution_parameters
         if true_negative_scores and len(true_negative_scores) >= 4:
                 tn_std = std(true_negative_scores, ddof=1)
                 tn_average = mean(true_negative_scores)
@@ -436,9 +435,9 @@ class ScoreObject:
                     self.score_distribution_parameters = inter_point
                 else:
                     logger_Filtered.warning("No Intersection Point")
-                    self.score_distribution_parameters = min(score_list)
+                    self.score_distribution_parameters = tp_average/2
         else:
-            self.score_distribution_parameters = min(score_list)
+            self.score_distribution_parameters = tp_average/2
         return self.score_distribution_parameters
 
     def generate_msa_string(self, rest_prot):
@@ -453,9 +452,7 @@ class ScoreObject:
             list_msa = generate_msa(r_tmp.name)
         return "\n".join(list_msa)
 
-    def iterative_score_computation(self, length_normalized=False):
-        if not self.length_dict:
-            self.seq_length_hash()
+    def iterative_score_computation(self):
         for idx in range(0, len(self.fasta_hash.keys())):
             rest_prot = list(self.fasta_hash.keys())
             query = rest_prot.pop(idx)
@@ -467,10 +464,7 @@ class ScoreObject:
                     with tmp.NamedTemporaryFile() as hmm_tmp:
                         generate_hmm(hmm_tmp.name, msa_tmp.name)
                         try:
-                            if length_normalized is True:
-                                score_dict = get_phmm_score(hmm_tmp.name, q_tmp.name, self.length_dict)
-                            else:
-                                score_dict = get_phmm_score(hmm_tmp.name, q_tmp.name)
+                            score_dict = get_phmm_score(hmm_tmp.name, q_tmp.name)
                         except IndexError:
                             continue
             self.score_dict.update(score_dict)
@@ -484,19 +478,10 @@ class ScoreObject:
             generate_hmm(location, msa_tmp.name)
         return location
 
-    def bulk_score_computation(self, length_normalized=False):
-        if not self.length_dict:
-            self.seq_length_hash()
+    def bulk_score_computation(self):
         with tmp.NamedTemporaryFile() as q_tmp:
-            seq_list = []
-            for header in self.fasta_hash.keys():
-                seq_list.append(header)
-                seq_list.append(self.fasta_hash[header][0])
-            write_to_tempfile(q_tmp.name, "\n".join(seq_list))
-            if length_normalized:
-                self.score_dict = get_phmm_score(self.hmm_path, q_tmp.name, self.length_dict)
-            else:
-                self.score_dict = get_phmm_score(self.hmm_path, q_tmp.name)
+            write_hash_to_fasta(q_tmp.name, self.fasta_hash)
+            self.score_dict = get_phmm_score(self.hmm_path, q_tmp.name)
         return self.score_dict
 
 
@@ -512,7 +497,7 @@ class Overseer:
         self.group_to_file_list = defaultdict(list)
         self.group_to_result_path = {}
         self.group_by_file_to_cluster_hash = defaultdict(dict)
-        self.group_by_file_to_length_hash = defaultdict(dict)
+        self.group_by_file_to_length_range = defaultdict(dict)
         self.group_by_file_to_msa_obj = defaultdict(dict)
         self.group_by_file_to_hmm = defaultdict(dict)
         self.group_by_file_to_score_obj = defaultdict(dict)
@@ -541,7 +526,7 @@ class Overseer:
         return 1
 
     def hash_single_file_input(self):
-        group_name = os.path.split(self.input_dir)[-2]
+        group_name = os.path.split(os.path.dirname(self.input_dir))[-1]
         file_name = ".".join(self.input_dir.split("/")[-1].strip().split(".")[0:-1])
         single_file = os.path.abspath(self.input_dir)
         self.group_to_result_path[group_name] = os.path.join(output_dir, group_name + ".GenePS")
@@ -585,7 +570,7 @@ class Overseer:
                 self.valid_input_scope -= 1
         return self.valid_input_scope
 
-    def output_HMM_and_fasta(self, directory):
+    def generate_hmm_and_fasta(self, directory):
         count = 1
         removed_group_to_file_list = defaultdict(list)
         for group, file_list in self.group_to_file_list.items():
@@ -600,7 +585,8 @@ class Overseer:
                         same_msa_path = write_hash_to_fasta(msa_obj.file_path, self.group_by_file_to_cluster_hash[group][file_name], ">{}\n{}\n")
                         msa_obj.re_align(same_msa_path)
                     self.group_by_file_to_msa_obj[group][file_name] = msa_obj
-                    self.group_by_file_to_length_hash[group][file_name] = write_length_binned_fasta(self.group_by_file_to_cluster_hash[group][file_name], file_name, os.path.join(output_dir, file_name + ".fasta"))
+                    length_hash = write_length_binned_fasta(self.group_by_file_to_cluster_hash[group][file_name], file_name, os.path.join(output_dir, file_name + ".fasta"))
+                    self.group_by_file_to_length_range[group][file_name] = calculate_length_range(length_hash)
                     self.group_by_file_to_hmm[group][file_name] = generate_hmm(os.path.join(output_dir, file_name + ".hmm"), msa_obj.file_path)
                 else:
                     removed_group_to_file_list[group].append(file_name)
@@ -609,18 +595,17 @@ class Overseer:
                 count += 1
         return self.remove_filtered_files(removed_group_to_file_list)
 
-    def compute_all_hmm_scores(self, length_normalized=False):
+    def compute_all_hmm_scores(self):
         count = 1
         print("\n")
         for group, file_list in self.group_to_file_list.items():
             for file_name in file_list:
                 fasta_hash = self.group_by_file_to_cluster_hash[group][file_name]
                 self.group_by_file_to_score_obj[group][file_name] = ScoreObject(fasta_hash, self.group_by_file_to_hmm[group][file_name])
-                self.group_by_file_to_score_obj[group][file_name].length_dict = self.group_by_file_to_length_hash[group][file_name]
                 if len(fasta_hash) < 20:
-                    score_hash = self.group_by_file_to_score_obj[group][file_name].iterative_score_computation(length_normalized=length_normalized)
+                    score_hash = self.group_by_file_to_score_obj[group][file_name].iterative_score_computation()
                 else:
-                    score_hash = self.group_by_file_to_score_obj[group][file_name].bulk_score_computation(length_normalized=length_normalized)
+                    score_hash = self.group_by_file_to_score_obj[group][file_name].bulk_score_computation()
                 print_progress(count, self.valid_input_scope, prefix='\tComputing HMM Score Distributions:\t', suffix='Complete', bar_length=30)
                 count += 1
                 if keep:
@@ -635,7 +620,7 @@ class Overseer:
         """searches for next best blast hit for each protein in the filtered fasta file. The next best hits must not
         be part of the unfiltered fasta file to avoid having a TP in the TN set!"""
         translated_unfiltered_cluster_header = translate_cluster_hash(self.group_by_file_to_unfiltered_header_set[group][file_name])
-        if translated_unfiltered_cluster_header is None:
+        if not translated_unfiltered_cluster_header:
             logger_TN_Warning.warning("Omitting True negative computation for {}".format(file_name))
             return None
         translated_filtered_cluster_header = translate_cluster_hash(self.group_by_file_to_cluster_hash[group][file_name].keys())
@@ -643,23 +628,23 @@ class Overseer:
         self.group_by_file_to_twin_hash[group][file_name] = fasta_hash
         return fasta_hash
 
-    def compute_true_negative_hmm_scores(self, length_normalized=False):
+    def compute_true_negative_hmm_scores(self):
         count = 1
         print("\n")
         for group, file_list in self.group_to_file_list.items():
             for file_name in file_list:
                 hmm = self.group_by_file_to_hmm[group][file_name]
                 fasta_hash = self.make_cluster_specific_TN_hash(group, file_name)
-                if fasta_hash is not None:
+                if fasta_hash:
                     scoring_obj = ScoreObject(fasta_hash, hmm)
-                    score_hash = scoring_obj.bulk_score_computation(length_normalized=length_normalized)
+                    score_hash = scoring_obj.bulk_score_computation()
                     self.group_by_file_to_twin_score_obj[group][file_name] = scoring_obj
                     self.group_by_file_to_twin_hmm[group][file_name] = scoring_obj.compute_full_phmm(os.path.join(output_dir, file_name + ".TN_hmm"))
                     print_progress(count, self.valid_input_scope, prefix='\tTrue Negative Score Distributions:\t', suffix='Complete', bar_length=30)
                     if keep:
                         keep_file = write_hash_to_fasta(os.path.join(keep_dir, "{}_{}_TrueNegativeScores.txt".format(group, file_name)), score_hash, "{}\t{}\n")
                 else:
-                    pass
+                    self.group_by_file_to_twin_score_obj[group][file_name] = None
                 count += 1
         return self.group_by_file_to_twin_score_obj
 
@@ -672,6 +657,7 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logger_Filtered = logging.getLogger("Filtered")
 logger_TN_Warning = logging.getLogger("TranslationFiles")
+output_dir = None
 
 ########################################################################################################################
 # main
@@ -691,6 +677,7 @@ if __name__ == "__main__":
     blast_specID_protID_hitList = defaultdict(lambda: defaultdict(list))
     idPair_2_namePair, namePair_2_idPair = {}, {}
     all_protein_fasta_dict = {}
+
     if true_negative_file:
         tn_args = parse_true_negative_arg(true_negative_file)
         blast_path, blast_file_set = get_blast_files(tn_args["blast"])
@@ -711,14 +698,14 @@ if __name__ == "__main__":
     filtered_data_scope = overseer_obj.initialize_input_data()
     logging.info("# {} groups and {} files\n".format(len(overseer_obj.group_to_file_list), str(overseer_obj.input_scope)))
     with tempdir() as temp_dir:
-        filtered_data_scope = overseer_obj.output_HMM_and_fasta(temp_dir)
+        filtered_data_scope = overseer_obj.generate_hmm_and_fasta(temp_dir)
         if not filtered_data_scope > 0:
             print("\t[!] FATAL ERROR: NO Multiple Sequence Alignments computable\n")
             sys.exit()
         # score distributions for all cluster
-        all_score_hashes = overseer_obj.compute_all_hmm_scores(length_normalized=True)
+        all_score_hashes = overseer_obj.compute_all_hmm_scores()
         if true_negative_file:
-            all_tn_scores_hash = overseer_obj.compute_true_negative_hmm_scores(length_normalized=True)
+            all_tn_scores_hash = overseer_obj.compute_true_negative_hmm_scores()
         print("\n")
         read_count = 1
         for name_group, all_files in overseer_obj.group_to_file_list.items():
@@ -726,7 +713,7 @@ if __name__ == "__main__":
                 results_file.write("group: {}\ngroup_size: {}\n".format(name_group, str(len(all_files))))
                 for cluster_name in all_files:
                     consensus = get_consensus(overseer_obj.group_by_file_to_hmm[name_group][cluster_name])
-                    length_range = overseer_obj.group_by_file_to_score_obj[name_group][cluster_name].calculate_length_distribution_parameters()
+                    length_range = overseer_obj.group_by_file_to_length_range[name_group][cluster_name]
                     if true_negative_file:
                         try:
                             tn_scores = list(overseer_obj.group_by_file_to_twin_score_obj[name_group][cluster_name].score_dict.values())
@@ -734,7 +721,7 @@ if __name__ == "__main__":
                             tn_scores = [0]
                         score_cut_off = overseer_obj.group_by_file_to_score_obj[name_group][cluster_name].calculate_score_distribution_parameters(true_negative_scores=tn_scores)
                     else:
-                        score_cut_off = overseer_obj.group_by_file_to_score_obj[name_group][cluster_name].calculate_score_distribution_parameters()
+                        score_cut_off = overseer_obj.group_by_file_to_score_obj[name_group][cluster_name].calculate_score_distribution_parameters() # if score cut off is not none
                     results_file.write("#name: {}\n#score_cut_off: {}\n#length_range: {},{}\n{}\n".format(cluster_name, score_cut_off, length_range[0], length_range[1], consensus))
                     print_progress(read_count, overseer_obj.valid_input_scope, prefix='\tWriting Results to Files:\t\t', suffix='Complete', bar_length=30)
                     read_count += 1

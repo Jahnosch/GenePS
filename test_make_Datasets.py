@@ -52,15 +52,18 @@ class TestHashFasta(unittest.TestCase):
 
 class TestCleanFastaHash(unittest.TestCase):
 
-    def test_remove_two_keys(self):
+    @patch("make_Datasets.logger_Filtered", return_value=None)
+    def test_remove_two_keys(self, logger):
         clean_hash = make_Datasets.clean_fasta_hash({">a": 1, ">b": 2, ">c": 3}, [">c"])
         self.assertEqual(clean_hash, {">c": 3})
 
-    def test_key_not_in_hash(self):
+    @patch("make_Datasets.logger_Filtered", return_value=None)
+    def test_key_not_in_hash(self, logger):
         clean_hash = make_Datasets.clean_fasta_hash({">a": 1, ">b": 2, ">c": 3}, [">t", ">p"])
         self.assertEqual(clean_hash, {})
 
-    def test_empty_dictionary(self):
+    @patch("make_Datasets.logger_Filtered", return_value=None)
+    def test_empty_dictionary(self, logger):
         clean_hash = make_Datasets.clean_fasta_hash({}, [">t", ">p"])
         self.assertEqual(clean_hash, {})
 
@@ -155,23 +158,19 @@ class TestLengthBinnedFasta(unittest.TestCase):
 
 class TestGetpHmmScores(unittest.TestCase):
 
-    hmm_search_score_file = open(os.path.join(test_data, "eef_hmmer_search.txt"))
-    hmm_search_score_list = hmm_search_score_file.readlines()
-    hmm_search_score_file.close()
+    hmm_search_score_file = os.path.join(test_data, "domtblout.txt")
 
-    @patch("make_Datasets.run_cmd", return_value=hmm_search_score_list)
-    def test_hmmsearch_probing_score_dict_length(self, run_command):
-        score_dict = make_Datasets.get_phmm_score("adf", "dafs")
+    def test_hmmsearch_score_dict_length(self):
+        score_dict = make_Datasets.parse_hmmer_domain_table(self.hmm_search_score_file)
         self.assertEqual(len(score_dict), 190)
-        self.assertEqual(1581, score_dict[">OVOLV.OVOC1360"])
 
-    @patch("make_Datasets.run_cmd", return_value=hmm_search_score_list)
-    def test_hmmsearch_length_normalization(self, run_command):
-        fasta_hash = make_Datasets.hash_fasta(os.path.join(test_data, file_name))
-        len_hash = {header: len(seq[0]) for header, seq in fasta_hash.items()}
-        len_hash[">OVOLV.OVOC1360"] = 10
-        score_dict = make_Datasets.get_phmm_score("adf", "dafs", header_to_length=len_hash)
-        self.assertEqual(score_dict[">OVOLV.OVOC1360"], 1581 / 10)
+    def test_hmmsearch_one_domain_score(self):
+        score_dict = make_Datasets.parse_hmmer_domain_table(self.hmm_search_score_file)
+        self.assertEqual(1583, score_dict[">LOLOA1.EN70_1811"])
+
+    def test_hmmsearch_two_domain_score(self):
+        score_dict = make_Datasets.parse_hmmer_domain_table(self.hmm_search_score_file)
+        self.assertEqual(667, score_dict[">SSCAP.L892_g29260.t1"])
 
 
 class TestScoreObject(unittest.TestCase):
@@ -184,28 +183,16 @@ class TestScoreObject(unittest.TestCase):
 
     def test_iterative_scoring_hand_checked_score(self):
         score_dict = self.score_obj.iterative_score_computation()
-        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 37)
+        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 17)
         self.assertNotIn(">ACRAS.cds.Contig3658m.1561", score_dict)
 
-    def test_iterative_scoring_length_normalized(self):
-        length_dict = {">ACRAS.cds.Contig10403m.5077": 10, ">ALUMB.ALUE_0000951001-mRNA-1": 10, ">ACRAS.cds.Contig3658m.1561": 10}
-        self.score_obj.length_dict = length_dict
-        score_dict = self.score_obj.iterative_score_computation(length_normalized=True)
-        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 37 / 10)
-
-    def test_bulk_scoring_hand_checked(self):
+    def test_bulk_scoring_hand_checked_score(self):
         score_dict = self.score_obj.bulk_score_computation()
-        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 193)
+        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 190)
 
-    def test_bulk_scoring_hand_checked_length_normalized(self):
-        length_dict = {">ACRAS.cds.Contig10403m.5077": 10, ">ALUMB.ALUE_0000951001-mRNA-1": 10, ">ACRAS.cds.Contig3658m.1561": 10}
-        self.score_obj.length_dict = length_dict
-        score_dict = self.score_obj.bulk_score_computation(length_normalized=True)
-        self.assertEqual(score_dict[">ALUMB.ALUE_0000951001-mRNA-1"], 193 / 10)
-
-    def test_length_distribution_parameters(self):
-        self.score_obj.length_dict = {">ACRAS.cds.Contig10403m.5077": 10, ">ALUMB.ALUE_0000951001-mRNA-1": 20, ">ACRAS.cds.Contig3658m.1561": 30}
-        self.assertListEqual(list(self.score_obj.calculate_length_distribution_parameters()), [10.0, 30.0])
+    def test_length_range(self):
+        length_dict = {">ACRAS.cds.Contig10403m.5077": 10, ">ALUMB.ALUE_0000951001-mRNA-1": 20, ">ACRAS.cds.Contig3658m.1561": 30}
+        self.assertListEqual(list(make_Datasets.calculate_length_range(length_dict)), [10.0, 30.0])
 
     def test_score_distribution_return_minimum(self):
         self.score_obj.score_dict = {"4": 4, "12": 12, "16": 16, "18": 18, "24": 24, "26": 26}
@@ -232,7 +219,65 @@ class TestMsaObject(unittest.TestCase):
         self.assertEqual(len(msa_list)/2, 190)
 
 
+class Overseer(unittest.TestCase):
 
+    @patch("make_Datasets.output_dir", return_value="")
+    @patch("builtins.print", autospec=True, return_value=None)
+    def test_initalize_with_single_file(self, printfunction, outdir):
+        overseer_obj = make_Datasets.Overseer(os.path.join(test_data, file_name))
+        overseer_obj.initialize_input_data()
+        self.assertEqual(overseer_obj.group_by_file_to_filepath["compile_script"]["eef_3.5_no_cea"], "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/compile_script/eef_3.5_no_cea.fa")
+
+    @patch("make_Datasets.output_dir", return_value="")
+    @patch("builtins.print", autospec=True, return_value=None)
+    @patch("make_Datasets.logger_Filtered", return_value=None)
+    def test_initalize_with_directory(self, logger, printfunction, outdir):
+        overseer_obj = make_Datasets.Overseer(test_data)
+        overseer_obj.initialize_input_data()
+        self.assertEqual(overseer_obj.group_by_file_to_filepath["compile_script"]["eef_3.5_no_cea"], "/home/jgravemeyer/Dropbox/MSc_project/src/GenePS/test_data/compile_script/eef_3.5_no_cea.fa")
+        self.assertNotIn("eef.hmm", overseer_obj.group_by_file_to_filepath["compile_script"])
+
+    def test_filter_file_list_remove_two(self):
+        overseer_obj = make_Datasets.Overseer("test")
+        overseer_obj.group_to_file_list["testgroup"] = ["1", "2", "3", "4"]
+        overseer_obj.valid_input_scope = 4
+        valid_files = overseer_obj.remove_filtered_files({"testgroup" : ["1", "2"]})
+        self.assertListEqual(overseer_obj.group_to_file_list["testgroup"], ['3', '4'])
+        self.assertEqual(4-2, valid_files)
+
+    def test_filter_file_list_nothing_to_remove(self):
+        overseer_obj = make_Datasets.Overseer("test")
+        overseer_obj.group_to_file_list["testgroup"] = ["1", "2", "3", "4"]
+        overseer_obj.valid_input_scope = 4
+        valid_files = overseer_obj.remove_filtered_files({})
+        self.assertListEqual(overseer_obj.group_to_file_list["testgroup"], ["1", "2", "3", "4"])
+        self.assertEqual(4, valid_files)
+'''
+    @patch("make_Datasets.output_dir", return_value="")
+    @patch("make_Datasets.generate_hmm", return_value="Test_HMM")
+    @patch("make_Datasets.write_length_binned_fasta", return_value={"a": 1})
+    @patch("make_Datasets.print_progress", return_value="")
+    def test_output_hmm_fasta_correct_file_writing_after_filtering(self, progress_print, binned_fasta, hmmbuild, outputdir):
+        overseer_obj = make_Datasets.Overseer(os.path.join(test_data, file_name))
+        overseer_obj.initialize_input_data()
+        print(overseer_obj.group_by_file_to_filepath)
+        print(overseer_obj.group_to_file_list)
+        print(len(overseer_obj.group_by_file_to_cluster_hash))
+        with tempdir() as msa_dir:
+            overseer_obj.output_HMM_and_fasta(msa_dir)
+            print(overseer_obj.group_by_file_to_msa_obj['compile_script']['eef_3.5_no_cea'].size_history)
+        # check if same path holds later on a fasta file and now aln
+            # aln afer realining same size as history as well as the length of the purged fasta hash
+'''
+# 190, 129
+'''
+def remove_filtered_files(self, removal_group_to_file_list):
+    for group, file_list in removal_group_to_file_list.items():
+        for file_name in file_list:
+            self.group_to_file_list[group].remove(file_name)
+            self.valid_input_scope -= 1
+    return self.valid_input_scope
+'''
 
 if __name__ == '__main__':
     unittest.main()

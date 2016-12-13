@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9ac74c5f-9e07-4646-ba1f-c511877f4a59" name="Default" comment="..">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test_make_Datasets.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/compile_script/eef_hmmer_search.txt" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.TN.hmmGenePS" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.fa_GenePS" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/OrthologousGroups_I3.5.OG0000365.txt.hmmGenePS" afterPath="" />
@@ -18,19 +18,16 @@
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.TN.hmmGenePS" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.fa_GenePS" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/test_data/run_geneps/overlapp_2137.hmmGenePS" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test_make_GenePS.py" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/make_GenePS.py" afterPath="$PROJECT_DIR$/make_Datasets.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/GenePS.iml" afterPath="$PROJECT_DIR$/.idea/GenePS.iml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/test_graph.pdf" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/check_accuracy.py" afterPath="$PROJECT_DIR$/mafft_option_plot.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compare_scoring_models.py" afterPath="$PROJECT_DIR$/compare_scoring_models.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/compute_msa.py" afterPath="$PROJECT_DIR$/compute_msa.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/exonerate_parser.py" afterPath="$PROJECT_DIR$/exonerate_parser.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/find_regions.py" afterPath="$PROJECT_DIR$/find_regions.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/plotting_tn_tp.py" afterPath="$PROJECT_DIR$/plotting_tn_tp.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/make_Datasets.py" afterPath="$PROJECT_DIR$/make_Datasets.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_GenePS.py" afterPath="$PROJECT_DIR$/run_GenePS.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_data/run_geneps/next_best_blast_eef.GenePS" afterPath="$PROJECT_DIR$/test_data/run_geneps/next_best_blast_eef.GenePS" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_run_GenePS.py" afterPath="$PROJECT_DIR$/test_run_GenePS.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run_command.py" afterPath="$PROJECT_DIR$/run_command.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_make_Datasets.py" afterPath="$PROJECT_DIR$/test_make_Datasets.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/testfield.py" afterPath="$PROJECT_DIR$/testfield.py" />
     </list>
     <ignored path="GenePS.iws" />
@@ -51,49 +48,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="make_Datasets.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="make_Datasets.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/make_Datasets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4038">
-              <caret line="239" column="52" selection-start-line="239" selection-start-column="52" selection-end-line="239" selection-end-column="52" />
+            <state relative-caret-position="12852">
+              <caret line="723" column="178" selection-start-line="723" selection-start-column="178" selection-end-line="723" selection-end-column="178" />
               <folding>
                 <element signature="e#719#728#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_make_Datasets.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test_make_Datasets.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="483">
-              <caret line="234" column="0" selection-start-line="234" selection-start-column="0" selection-end-line="234" selection-end-column="0" />
-              <folding>
-                <element signature="e#23#38#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="plotting_tn_tp.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plotting_tn_tp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1400">
-              <caret line="80" column="0" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
-              <folding>
-                <element signature="e#513#522#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/run_GenePS.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="105" column="52" selection-start-line="105" selection-start-column="52" selection-end-line="105" selection-end-column="52" />
-              <folding>
-                <element signature="e#1193#1202#0" expanded="true" />
+                <element signature="e#6897#7347#1" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -102,18 +64,30 @@
       <file leaf-file-name="compute_msa.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/compute_msa.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
-              <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
+            <state relative-caret-position="684">
+              <caret line="39" column="97" selection-start-line="39" selection-start-column="97" selection-end-line="39" selection-end-column="97" />
+              <folding>
+                <element signature="e#23#54#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="testfield.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/testfield.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="36">
+              <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="20" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="exonerate_parser.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
+      <file leaf-file-name="Genblast_wrapper.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Genblast_wrapper.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2376">
-              <caret line="201" column="57" selection-start-line="201" selection-start-column="57" selection-end-line="201" selection-end-column="57" />
+            <state relative-caret-position="180">
+              <caret line="10" column="103" selection-start-line="10" selection-start-column="103" selection-end-line="10" selection-end-column="103" />
               <folding>
                 <element signature="e#23#32#0" expanded="true" />
               </folding>
@@ -121,13 +95,69 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_run_GenePS.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
+      <file leaf-file-name="run_command.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/run_command.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="342">
-              <caret line="196" column="22" selection-start-line="195" selection-start-column="0" selection-end-line="202" selection-end-column="98" />
+            <state relative-caret-position="270">
+              <caret line="20" column="40" selection-start-line="20" selection-start-column="40" selection-end-line="20" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mafft_option_plot.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mafft_option_plot.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="468">
+              <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#10#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="exonerate_parser.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="4086">
+              <caret line="230" column="0" selection-start-line="230" selection-start-column="0" selection-end-line="230" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_make_Datasets.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test_make_Datasets.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3258">
+              <caret line="189" column="60" selection-start-line="189" selection-start-column="60" selection-end-line="189" selection-end-column="60" />
               <folding>
                 <element signature="e#23#38#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="run_GenePS.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/run_GenePS.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="203">
+              <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
+              <folding>
+                <element signature="e#1193#1202#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="find_regions.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/find_regions.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="4" selection-end-column="31" />
+              <folding>
+                <element signature="e#23#32#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -150,31 +180,33 @@
       <list>
         <option value="$PROJECT_DIR$/tryout.py" />
         <option value="$PROJECT_DIR$/testscripts.py" />
-        <option value="$PROJECT_DIR$/check_accuracy.py" />
         <option value="$PROJECT_DIR$/TrueNegative_Twin.py" />
         <option value="$PROJECT_DIR$/test_field.py" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/compare_scoring_models.py" />
-        <option value="$PROJECT_DIR$/run_command.py" />
         <option value="$PROJECT_DIR$/find_regions.py" />
         <option value="$PROJECT_DIR$/test_run_GenePS.py" />
-        <option value="$PROJECT_DIR$/exonerate_parser.py" />
         <option value="$PROJECT_DIR$/make_GenePS.py" />
         <option value="$PROJECT_DIR$/test_make_GenePS.py" />
-        <option value="$PROJECT_DIR$/compute_msa.py" />
-        <option value="$PROJECT_DIR$/testfield.py" />
-        <option value="$PROJECT_DIR$/test_make_Datasets.py" />
         <option value="$PROJECT_DIR$/plotting_tn_tp.py" />
+        <option value="$PROJECT_DIR$/test_make_Datasets.py" />
+        <option value="$PROJECT_DIR$/exonerate_parser.py" />
+        <option value="$PROJECT_DIR$/check_accuracy.py" />
+        <option value="$PROJECT_DIR$/testfield.py" />
+        <option value="$PROJECT_DIR$/mafft_option_plot.py" />
+        <option value="$PROJECT_DIR$/compute_msa.py" />
         <option value="$PROJECT_DIR$/make_Datasets.py" />
         <option value="$PROJECT_DIR$/run_GenePS.py" />
+        <option value="$PROJECT_DIR$/run_command.py" />
+        <option value="$PROJECT_DIR$/Genblast_wrapper.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1920" />
-    <option name="y" value="24" />
-    <option name="width" value="1920" />
-    <option name="height" value="1056" />
+    <option name="x" value="65" />
+    <option name="y" value="-4" />
+    <option name="width" value="1855" />
+    <option name="height" value="1084" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -226,12 +258,12 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../short_scripts/ETE_parser.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="ToolWindowDebug.ShowToolbar" value="false" />
   </component>
-  <component name="RunManager" selected="Python.ETE_parser">
+  <component name="RunManager" selected="Python tests.Unittests in test_run_GenePS">
     <configuration default="false" name="Unittests in testfield" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -254,7 +286,7 @@
       <option name="USE_PARAM" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="exonerate_parser" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="mafft_option_plot" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -266,7 +298,41 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="GenePS" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/exonerate_parser.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mafft_option_plot.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Genblast_wrapper" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GenePS" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Genblast_wrapper.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="run_GenePS" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GenePS" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_GenePS.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -291,45 +357,6 @@
       <option name="PUREUNITTEST" value="true" />
       <option name="PARAMS" value="" />
       <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="Unittests in test_make_Datasets" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="GenePS" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_make_Datasets.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_SCRIPT" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <option name="PUREUNITTEST" value="true" />
-      <option name="PARAMS" value="" />
-      <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="ETE_parser" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../short_scripts" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="GenePS" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../short_scripts/ETE_parser.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -481,18 +508,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in testfield" />
-      <item index="1" class="java.lang.String" itemvalue="Python.exonerate_parser" />
-      <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
-      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in test_make_Datasets" />
-      <item index="4" class="java.lang.String" itemvalue="Python.ETE_parser" />
+      <item index="1" class="java.lang.String" itemvalue="Python.mafft_option_plot" />
+      <item index="2" class="java.lang.String" itemvalue="Python.Genblast_wrapper" />
+      <item index="3" class="java.lang.String" itemvalue="Python.run_GenePS" />
+      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.ETE_parser" />
-        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests in test_make_Datasets" />
-        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests in testfield" />
-        <item index="3" class="java.lang.String" itemvalue="Python.exonerate_parser" />
-        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in test_run_GenePS" />
+        <item index="1" class="java.lang.String" itemvalue="Python.run_GenePS" />
+        <item index="2" class="java.lang.String" itemvalue="Python.Genblast_wrapper" />
+        <item index="3" class="java.lang.String" itemvalue="Python.mafft_option_plot" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in testfield" />
       </list>
     </recent_temporary>
   </component>
@@ -513,46 +540,45 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 37m 55s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_test_run_GenePS - 2016.12.13 at 16h 47m 42s.xml">
+      <configuration name="Unittests in test_run_GenePS" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 42m 21s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.08 at 18h 24m 35s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 42m 44s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.08 at 18h 54m 00s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 44m 46s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.08 at 19h 06m 09s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 45m 07s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 09h 48m 38s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 47m 43s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 10h 15m 44s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 48m 00s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 10h 21m 23s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 49m 20s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 10h 40m 26s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 51m 43s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 10h 57m 19s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_in_test_make_Datasets - 2016.11.30 at 10h 51m 56s.xml">
-      <configuration name="Unittests in test_make_Datasets" configurationId="tests" />
+    <history-entry file="Unittests_in_testfield - 2016.12.09 at 11h 23m 52s.xml">
+      <configuration name="Unittests in testfield" configurationId="tests" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="24" width="1920" height="1056" extended-state="6" />
+    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11491829" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3262195" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.11899564" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30589432" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24085365" sideWeight="0.49423522" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4390244" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28963414" sideWeight="0.49423522" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39939025" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -562,6 +588,7 @@
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.0" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3262195" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -602,22 +629,14 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/run_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="176" column="37" selection-start-line="176" selection-start-column="37" selection-end-line="176" selection-end-column="37" />
-          <folding>
-            <element signature="e#1193#1202#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test_run_GenePS.py" />
     <entry file="file://$PROJECT_DIR$/find_regions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="149" column="53" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -625,9 +644,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="120" column="0" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -637,6 +654,7 @@
           <caret line="222" column="30" selection-start-line="222" selection-start-column="30" selection-end-line="222" selection-end-column="30" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -657,7 +675,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="149" column="53" selection-start-line="149" selection-start-column="53" selection-end-line="149" selection-end-column="53" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -665,9 +685,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -678,6 +696,7 @@
           <caret line="89" column="20" selection-start-line="89" selection-start-column="20" selection-end-line="89" selection-end-column="20" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -701,9 +720,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -711,7 +728,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="11" column="49" selection-start-line="11" selection-start-column="49" selection-end-line="11" selection-end-column="49" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -732,6 +751,7 @@
           <caret line="12" column="0" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -748,9 +768,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -758,9 +776,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="76" column="52" selection-start-line="76" selection-start-column="52" selection-end-line="76" selection-end-column="52" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -768,7 +784,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="11" column="49" selection-start-line="11" selection-start-column="49" selection-end-line="11" selection-end-column="49" />
-          <folding />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -796,6 +814,7 @@
           <caret line="89" column="20" selection-start-line="89" selection-start-column="20" selection-end-line="89" selection-end-column="20" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -815,6 +834,7 @@
           <caret line="12" column="0" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -831,9 +851,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -851,114 +869,119 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/check_accuracy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="23" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/lib/python3.4/unittest/case.py" />
-    <entry file="file://$PROJECT_DIR$/find_regions.py">
+    <entry file="file://$PROJECT_DIR$/../short_scripts/One_to_one_parser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2628">
-          <caret line="149" column="83" selection-start-line="149" selection-start-column="83" selection-end-line="149" selection-end-column="83" />
-          <folding />
+        <state relative-caret-position="162">
+          <caret line="21" column="14" selection-start-line="21" selection-start-column="14" selection-end-line="21" selection-end-column="14" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/run_command.py">
+    <entry file="file://$PROJECT_DIR$/test_make_Datasets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="171">
-          <caret line="10" column="18" selection-start-line="9" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+        <state relative-caret-position="3258">
+          <caret line="189" column="60" selection-start-line="189" selection-start-column="60" selection-end-line="189" selection-end-column="60" />
           <folding>
-            <element signature="e#23#40#0" expanded="false" />
+            <element signature="e#23#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
+    <entry file="file://$PROJECT_DIR$/mafft_option_plot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2376">
-          <caret line="201" column="57" selection-start-line="201" selection-start-column="57" selection-end-line="201" selection-end-column="57" />
+        <state relative-caret-position="468">
+          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
           <folding>
-            <element signature="e#23#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/testfield.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="576">
-          <caret line="53" column="0" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#80#0" expanded="false" />
+            <element signature="e#0#10#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test_run_GenePS.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="196" column="22" selection-start-line="195" selection-start-column="0" selection-end-line="202" selection-end-column="98" />
-          <folding>
-            <element signature="e#23#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/compute_msa.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="1098">
+          <caret line="223" column="60" selection-start-line="223" selection-start-column="4" selection-end-line="223" selection-end-column="62" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/plotting_tn_tp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1400">
-          <caret line="80" column="0" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
-          <folding>
-            <element signature="e#513#522#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="324">
+          <caret line="52" column="48" selection-start-line="52" selection-start-column="48" selection-end-line="52" selection-end-column="48" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../short_scripts/ETE_parser.py">
+    <entry file="file://$PROJECT_DIR$/compute_msa.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="21" column="14" selection-start-line="21" selection-start-column="14" selection-end-line="21" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_GenePS.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="105" column="52" selection-start-line="105" selection-start-column="52" selection-end-line="105" selection-end-column="52" />
+        <state relative-caret-position="684">
+          <caret line="39" column="97" selection-start-line="39" selection-start-column="97" selection-end-line="39" selection-end-column="97" />
           <folding>
-            <element signature="e#1193#1202#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test_make_Datasets.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="483">
-          <caret line="234" column="0" selection-start-line="234" selection-start-column="0" selection-end-line="234" selection-end-column="0" />
-          <folding>
-            <element signature="e#23#38#0" expanded="true" />
+            <element signature="e#23#54#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/make_Datasets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4038">
-          <caret line="239" column="52" selection-start-line="239" selection-start-column="52" selection-end-line="239" selection-end-column="52" />
+        <state relative-caret-position="12852">
+          <caret line="723" column="178" selection-start-line="723" selection-start-column="178" selection-end-line="723" selection-end-column="178" />
           <folding>
             <element signature="e#719#728#0" expanded="true" />
+            <element signature="e#6897#7347#1" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testfield.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="36">
+          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/exonerate_parser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4086">
+          <caret line="230" column="0" selection-start-line="230" selection-start-column="0" selection-end-line="230" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/find_regions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="4" selection-end-column="31" />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_command.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="20" column="40" selection-start-line="20" selection-start-column="40" selection-end-line="20" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Genblast_wrapper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="10" column="103" selection-start-line="10" selection-start-column="103" selection-end-line="10" selection-end-column="103" />
+          <folding>
+            <element signature="e#23#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_GenePS.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
+          <folding>
+            <element signature="e#1193#1202#0" expanded="true" />
           </folding>
         </state>
       </provider>

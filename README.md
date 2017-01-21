@@ -94,7 +94,8 @@ are only considered for further downstream analysis if a certain percent of the 
 default minimum for query coverage is 30%. A higher threshold could exclude false positive regions and save run time.
 If the threshold is too low a true positive region might be missed.
 
-out_dir: specify an output directory
+out_dir: specify an output directory. If nothing is specified a "Predictions"-folder will be created
+in the same directory as the "build_modles.py"-output.
 
 quick: GenePS first aligns all protein sequences against a candidate region to find the protein sequence within a cluster
 that is most likely to give the best prediction for this particular region. Alignments and predictions in GenePS are
@@ -104,7 +105,7 @@ most promising sequence to the same region again, but now in the "p2g -E yes" mo
 refinement step can be omitted with the --quick flag. It will speed up the run dramatically but often on the costs of accuracy.
 
 frag: Activates a fragmentation filter. Default off. If on, every protein predicted by exonerate will have to be within
-a certain sequence length range in order to pass the filter of GenePS. Prediction outside this length range will be
+a certain sequence length range in order to pass the filter of GenePS. Predictions outside this length range will be
 considered as fragmented predictions. The lenght range was computed during model building and is stored in the .GenePS file.
 
 --keep: keeps intermediate results file. Blast files, merged HSP files and exonerate intermediate files.
@@ -112,5 +113,5 @@ considered as fragmented predictions. The lenght range was computed during model
 --verbose: Prints progress statements to the screen (e.g. about passed predictions or even filtered prediction).
 
 
-The final output of "use_models" will be gff files, protein files and cds files for prediction GenePS considers to be "valid"
-but also for all filtered predictions. Furthermore a summary report will be printed as well as a LOG file.
+The final output of "use_models" will be gff files, protein files and cds files for predictions GenePS considers to be "valid"
+but also for all filtered predictions. Furthermore a summary report will be written to the output directory as well as a LOG file.

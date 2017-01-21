@@ -80,7 +80,9 @@ Usage: use_models.py                          -i <DIR> -g <FILE> [-c <INT>] [-o 
 multiple genomes can be specified by creating a text if in style of:
 
 genome_name=path/to/genome
+
 ...
+
 genome_name_N=path/to/genome_N
 
 Please note that there are no spaces between the equal sign and the path variable.

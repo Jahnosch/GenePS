@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Usage: make_Datasets.py                         -i <FILE> -r <INT> -p <INT> -o <STR> -l <INT> [-q <FILE>]
+Usage: build_models.py                         -i <FILE> -r <INT> -p <INT> -o <STR> -l <INT> [-q <FILE>]
 
     Options:
         -h, --help                            show this screen.
@@ -20,9 +20,8 @@ import seaborn as sns
 import tempfile
 from docopt import docopt
 from random import sample
-from run_command import run_cmd, tempdir
-from make_Datasets import ScoreObject, generate_hmm, write_to_tempfile, hash_fasta
-from compute_msa import generate_msa
+from shared_code_box import run_cmd, tempdir, hash_fasta, generate_hmm, write_to_tempfile
+from build_models import ScoreObject, generate_msa
 sns.set(color_codes=True)
 
 
@@ -69,7 +68,7 @@ def bulk_hmm_scoring_model():
         seq_list = []
         for header in seq_header_list:
             seq_list.append(header)
-            seq_list.append(cluster_hash[header][0])
+            seq_list.append(cluster_hash[header])
         write_to_tempfile(tmp.name, "\n".join(seq_list))
         msa = "\n".join(generate_msa(tmp.name))
         with tempfile.NamedTemporaryFile() as msa_tmp:

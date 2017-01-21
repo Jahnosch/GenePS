@@ -2,14 +2,14 @@
 import os
 from operator import itemgetter
 from collections import defaultdict, namedtuple
-from run_command import run_cmd
+from shared_code_box import run_cmd
 
 
 def make_blast_db(genome, temp_dir):
     name = genome.split("/")[-1]
     out_dir = os.path.join(temp_dir, name)
     if os.path.exists(out_dir + ".nhr"):
-        print("\n\t[-] BLAST db already exists:\n\t{}".format(os.path.join(temp_dir, name)))
+        print("\n\t[-] BLAST db already exists:\t{}\n".format(os.path.join(temp_dir, name)))
         return out_dir
     command = "makeblastdb -in " + genome + " -dbtype nucl -parse_seqids -out " + out_dir
     run_cmd(command=command, wait=True)
@@ -61,8 +61,14 @@ class HspListObject:
                 s_start = hsp_x["s_start"]
                 hsp_x["s_start"] = hsp_x["s_end"]
                 hsp_x["s_end"] = s_start
-        self.hsp_sorted = sorted(self.hsp_list, key=itemgetter("strand", "s_start"))
+        self.hsp_sorted = sorted(self.hsp_list, key=itemgetter("strand", "s_start", "q_start"))
         self.get_sorted_attributes()
+
+    def merge_condition(self, end, start_last, strand, strand_last):
+        if abs(end - start_last) < self.merge_dist:
+            if strand == strand_last:
+                return True
+        return False
 
     def merge_to_region(self):
         if self.hsp_sorted is []:
@@ -103,7 +109,7 @@ class HspListObject:
                 aligned_bits_sum += q_ends[idx] - q_starts[idx]
             prev_idx = idx
         aligned_bits_sum += q_ends[0] - q_starts[0]
-        chunck_cov = round((aligned_bits_sum / (q_ends[-1] - q_starts[0])) * 100)
+        chunck_cov = round((aligned_bits_sum / (max(q_ends) - min(q_starts))) * 100)
         query_cov = round((aligned_bits_sum / q_length) * 100)
         return chunck_cov, query_cov
 
@@ -185,23 +191,27 @@ def read_blast_output(blast_file, db_path):
 
 def run_tblastn(db_path, q_file, file_location):
     command = ["tblastn", "-query", q_file, "-db", db_path, "-outfmt",
-               """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-5", "-out", file_location]
+               """7 qacc sacc evalue qstart qend sstart send qlen sframe""", "-evalue", "1e-1", "-out", file_location]
     run_cmd(command=command, wait=True)
     return read_blast_output(file_location, db_path)
 
 if __name__ == "__main__":
-    db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/Blast_dbs/c_brenneri/c_brenneri.PRJNA20035.WS249.genomic.fa"
-    query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/find_region_test_query.fa"
-    out_dir = "/home/jgravemeyer/Dropbox/MSc_project/data/remanei_OG1685.blast"
+    db = "/home/jgravemeyer/Dropbox/MSc_project/res/c_elegans.PRJNA13758.WS254.genomic.fa"
+    db = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data/F226Dparalog_T15D6.2_region.fa"
+    query_test = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data/25F22D6.12.fa"
+    out_dir = "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data/F226Dparalog_T15D6.2.blast"
     blast = run_tblastn(db, query_test, out_dir)
-    blast.infer_regions()
+    if blast:
+        blast.infer_regions()
+    else:
+        raise Exception("no results")
+
 
 
     for contig in blast.inferred_regions:
         for query in blast.inferred_regions[contig]:
             print(query)
             for region_x in blast.inferred_regions[contig][query]:
-                results = region_blast = parse_blastdb(db, contig, region_x.s_start, region_x.s_end)
-                print(region_x)
-                print(blast.region_tuple_to_fasta[region_x])
+                    print(region_x)
+                    print(blast.region_tuple_to_fasta[region_x])
 

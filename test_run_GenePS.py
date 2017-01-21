@@ -2,10 +2,12 @@
 import unittest
 import os
 from unittest.mock import patch
-from run_command import tempdir
+from shared_code_box import tempdir
 import run_GenePS
-from find_regions import read_blast_output, HspListObject
-from exonerate_parser import remove_non_letter_signs, clear_hashed_bases, aacode_3to1, ExonerateObject
+from collections import defaultdict, namedtuple
+from Blast_wrapper import read_blast_output, HspListObject
+from Exonerate_GenBlast_Wrapper import remove_non_letter_signs, clear_hashed_bases, aacode_3to1, ExonerateObject
+import Exonerate_GenBlast_Wrapper
 
 script_path = os.path.dirname(os.path.realpath(__file__))
 test_data = os.path.join(script_path, "test_data")
@@ -63,14 +65,17 @@ class TestBlastObject(unittest.TestCase):
 
     def test_compute_coverage(self):
         test_obj = HspListObject("fake", "fake")
-        chunk, query = test_obj.compute_coverage([35, 40, 80], [50, 60, 100], 100)
+        chunk, query = test_obj.compute_coverage([35, 40, 50, 80], [50, 60, 55, 100], 100)
         self.assertEqual(chunk, 69)
         self.assertEqual(query, 45)
+        chunk_many, query_many = test_obj.compute_coverage([88, 64, 238, 93, 241, 64, 101], [184, 101, 400, 216, 360, 101, 215], 466)
+        self.assertEqual(chunk_many, 93)
+        self.assertEqual(query_many, 67)
         chunk_single, query_single = test_obj.compute_coverage([35], [50], 100)
         self.assertEqual(chunk_single, 100)
         self.assertEqual(query_single, 15)
 
-
+'''
 class TestExonerateObject(unittest.TestCase):
 
     # with hashes in sequence
@@ -135,6 +140,62 @@ class TestExonerateObject(unittest.TestCase):
         out_string = "AdfAy*lw"
         self.assertEqual(remove_non_letter_signs(test_string), out_string)
 
+'''
+
+
+class TestOverlapp(unittest.TestCase):
+
+    def make_pred_object_list(self):
+        Region = namedtuple("Region", "contig, s_start, s_end, strand")
+        region = Region(contig='II', s_start=3290626, s_end=3305673, strand='+')
+        obj_values = [[3300015, 3304612, '+', 44, 104], [3295630, 3297975, '+', 628, 886], [3295630, 3296549, '+', 326, 569],
+                      [3298963, 3299551, '+', 194, 362], [3298841, 3299485, '+', 217, 264], [3294179, 3300608, '+', 178, 279],
+                      [3297119, 3300674, '+', 579, 790]]
+        pred_obj_list = []
+        for value_list in obj_values:
+            prec_obj = Exonerate_GenBlast_Wrapper.PredictionObject(region, value_list[3], "-", "-", "-")
+            prec_obj.gene_start = value_list[0]
+            prec_obj.gene_end = value_list[1]
+            prec_obj.gene_length = prec_obj.gene_end - prec_obj.gene_start
+            prec_obj.aln_score = value_list[-1]
+            pred_obj_list.append(prec_obj)
+        return sorted(pred_obj_list, key=lambda x: x.score, reverse=True)
+
+    @patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', return_value=True)
+    def test_all_overlapp(self, overlapp):
+        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        self.assertEqual(passed[0].score, 628)
+        self.assertEqual(len(filtered), 6)
+
+    @patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', return_value=False)
+    def test_no_overlapp(self, overlapp):
+        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        self.assertEqual(len(passed), 7)
+        self.assertEqual(len(filtered), 0)
+
+    #@patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', autospec=True, side_effect=overlapp_side_effect)
+    def test_crossoverlapping_correct_pick(self):
+        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        winner_scores = [628, 217, 44]
+        for pred_obj in passed:
+            self.assertIn(pred_obj.score, winner_scores)
+
+    def test_crossoverlapping_list_length(self):
+        filtered, passed = Exonerate_GenBlast_Wrapper.isolate_overlapping_predictions(self.make_pred_object_list())
+        self.assertEqual(len(filtered), 4)
+        self.assertEqual(len(passed), 3)
+        self.assertEqual(len(set(passed)), 3)
+
+    def test_no_overlapp_between_filtered_and_passed(self):
+        filtered, passed = Exonerate_GenBlast_Wrapper.isolate_overlapping_predictions(self.make_pred_object_list())
+        self.assertFalse(set(passed).intersection(set(filtered)))
+
+    def test_no_redundance_of_passed_objects(self):
+        filtered, passed = Exonerate_GenBlast_Wrapper.isolate_overlapping_predictions(self.make_pred_object_list())
+        for idx in range(0, len(passed)):
+            for idx3 in range(idx + 1, len(passed)):
+                self.assertNotEqual(passed[idx], passed[idx+1])
+
 
 class TestDataProviderObject(unittest.TestCase):
 
@@ -143,13 +204,12 @@ class TestDataProviderObject(unittest.TestCase):
     def test_all_attributes(self):
         self.assertEqual(self.data_base.cluster_scope, 5)
         self.assertEqual(self.data_base.group_names[0], "next_best_blast_eef")
-        self.assertEqual(self.data_base.group_to_single_copy_ortholog["next_best_blast_eef"], "True")
         self.assertEqual(self.data_base.group_to_group_size["next_best_blast_eef"], 5)
-        self.assertEqual(self.data_base.group_by_cluster_to_consensus_length["next_best_blast_eef"]["eef_3.5"], 838)
-        self.assertTrue(self.data_base.group_by_cluster_to_hmm["next_best_blast_eef"]["eef_3.5"].split(".")[-1] == "hmmGenePS")
+        self.assertTrue(self.data_base.group_by_cluster_to_hmm["next_best_blast_eef"]["eef_3.5"].split(".")[-1] == "hmm")
         self.assertEqual(self.data_base.group_by_cluster_to_score_cutoff["next_best_blast_eef"]["eef_3.5"], 1.1826699418473992)
-        self.assertEqual(self.data_base.group_by_cluster_to_len_confidence["next_best_blast_eef"]["eef_3.5"], ['303.97390927100224', '913.1505146921315'])
+        self.assertEqual(self.data_base.group_by_cluster_to_length_range["next_best_blast_eef"]["eef_3.5"], ['303.97390927100224', '913.1505146921315'])
 
+'''
 
 class TestOverseerPredictAllRegions(unittest.TestCase):
     elegans_db = os.path.join(test_data, "databases/c_elegans.PRJNA13758.WS254.genomic.fa")
@@ -160,10 +220,10 @@ class TestOverseerPredictAllRegions(unittest.TestCase):
     overseer.merged_regions = 21
     run_GenePS.data_base = run_GenePS.DataProviderObject(test_data + "/run_geneps")
     with tempdir() as tmp:
-        valid_predictions = overseer.predict_on_all_regions(tmp)
+        valid_predictions = overseer.get_exonerate_models(tmp)
 
     def test_predict_all_regions_number_valid_predictions(self):
-        self.assertEqual(4, self.valid_predictions)
+        self.assertEqual(5, self.valid_predictions)
         self.assertEqual(17, self.overseer.filter_count)
 
     def test_predict_all_regions_correct_cluster(self):
@@ -174,82 +234,92 @@ class TestOverseerPredictAllRegions(unittest.TestCase):
         self.assertSetEqual(set(cluster_test_list), set(cluster_list))
 
     def test_predict_all_regions_minus_strand_prediction(self):
-        check_list = ['III', 1191666, 1185388, '-']
+        check_list = ['III', 1193723, 1185388, '-']
         for pred in self.overseer.group_by_cluster_by_contig_to_valid_prediction["next_best_blast_eef"]["OrthologousGroups_I3.5.OG0000365.txt"]["III"]:
             self.assertListEqual(check_list, [pred.contig, pred.gene_start, pred.gene_end, pred.strand])
 
     def test_predict_all_regions_plus_strand_prediction(self):
-        check_list = ['II', 13119742, 13121820, '+']
+        check_list = ['II', 13121212, 13121490, '+']
         for pred in self.overseer.group_by_cluster_by_contig_to_valid_prediction["next_best_blast_eef"]["OrthologousGroups_I3.5.OG0000365.txt"]["II"]:
             self.assertListEqual(check_list, [pred.contig, pred.gene_start, pred.gene_end, pred.strand])
 
-    def test_predict_all_regions_no_exonerate_fails(self):
-        fail_count = 0
-        for group, cluster in self.overseer.group_by_cluster_no_prediction_region.items():
-            for pred_list in self.overseer.group_by_cluster_no_prediction_region[group][cluster]:
-                fail_count += len(pred_list)
-        self.assertEqual(fail_count, 0)
 
+class TestGenBlastObject(unittest.TestCase):
 
-class TestOverlapp(unittest.TestCase):
+    file_path_dict = {'gff': os.path.join(test_data, "run_geneps/python_genblast_test_1.1c_2.3_s1_0_16_1.gff"),
+                      'DNA': os.path.join(test_data, 'run_geneps/python_genblast_test_1.1c_2.3_s1_0_16_1.DNA'),
+                      'pro': os.path.join(test_data, 'run_geneps/python_genblast_test_1.1c_2.3_s1_0_16_1.pro')}
+    hmm_scores = {'>9_B0205.10_Inf5.0_OG0011445-R1-1-A1': 276, '>17_B0205.10_Inf5.0_OG0011445-R1-1-A1': 283,
+                  '>12_B0205.10_Inf5.0_OG0011445-R1-1-A1': 301, '>1_B0205.10_Inf5.0_OG0011445-R1-1-A1': 295,
+                  '>16_B0205.10_Inf5.0_OG0011445-R1-1-A1': 259, '>15_B0205.10_Inf5.0_OG0011445-R1-1-A1': 281,
+                  '>13_B0205.10_Inf5.0_OG0011445-R1-1-A1': 403, '>20_B0205.10_Inf5.0_OG0011445-R1-1-A1': 292,
+                  '>19_B0205.10_Inf5.0_OG0011445-R1-1-A1': 306, '>14_B0205.10_Inf5.0_OG0011445-R1-1-A1': 332,
+                  '>8_B0205.10_Inf5.0_OG0011445-R1-1-A1': 320, '>1_B0205.10_Inf5.0_OG0011445-R1-1-A2': 293}
 
-    def setUp(self, size=5):
-        self.overseer = run_GenePS.Overseer("test", "fake", "wayne")
-        names = ["zero", "one", "two", "three", "four"]
-        for score in range(0, size):
-            pred_obj = run_GenePS.PredictionObject("test", "fake", "wayne", "still_test", names[score], "fake2")
-            pred_obj.score = score
-            pred_obj.contig = "I"
-            self.overseer.group_by_contig_to_passed_prediction_list["group"]["I"].append(pred_obj)
+    @patch('Exonerate_GenBlast_Wrapper.run_cmd', return_value=None)
+    def test_run_genblastg_returns_3_files(self, run_cmd):
+        genblast = Exonerate_GenBlast_Wrapper.run_genblastg("", "", os.path.join(test_data, "run_geneps"), "python_genblast_test")
+        self.assertEqual(self.file_path_dict, genblast.out_files)
+        pass
 
-    def overlapp_side_effect(self, pred):
-        overlapping_pred = ["zero", "two", "four"]
-        overlapp_flag = False
-        if self.cluster != pred.cluster:
-            if pred.cluster in overlapping_pred:
-                if self.cluster in overlapping_pred:
-                    overlapp_flag = True
-        return overlapp_flag
+    def test_hash_gff_correct_length(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        self.assertEqual(13, len(genblast_obj.gff))
+        self.assertEqual(13, len(genblast_obj.regions))
 
-    @patch('run_GenePS.PredictionObject.check_for_overlapp_if_same_contig', return_value=True)
-    def test_all_overlapp(self, overlapp):
-        count_overlapp = self.overseer.contigwise_overlapping_control("group", "I")
-        for cluster in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"]:
-            for pred_obj in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"][cluster]["I"]:
-                highest_value = pred_obj.score
-                self.assertEqual(highest_value, 4)
-        self.assertEqual(count_overlapp, 5)
+    def test_hash_gff_test_phase(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        transcript = genblast_obj.gff[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"][0].split("\t")[7]
+        first_exon = genblast_obj.gff[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"][1].split("\t")[7]
+        second_exon = genblast_obj.gff[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"][2].split("\t")[7]
+        third_exon = genblast_obj.gff[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"][3].split("\t")[7]
+        last_exon = genblast_obj.gff[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"][4].split("\t")[7]
+        phase_list = [transcript, first_exon, second_exon, third_exon, last_exon]
+        self.assertListEqual(phase_list, [".", "0", "1", "0", "1"])
 
-    @patch('run_GenePS.PredictionObject.check_for_overlapp_if_same_contig', return_value=False)
-    @patch("builtins.print", autospec=True, return_value=None)
-    def test_no_overlapp(self, printfunction, overlapp):
-        count_overlapp = self.overseer.contigwise_overlapping_control("group", "I")
-        count_valid = 0
-        for cluster in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"]:
-            count_valid += len(self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"][cluster]["I"])
-        self.assertEqual(count_valid, 5)
-        self.assertEqual(count_overlapp, 0)
+    def test_region_tupel(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        region = genblast_obj.regions[">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"]
+        attribute_list = [region.contig, region.s_start, region.s_end, region.strand, region.header]
+        self.assertListEqual(attribute_list, ["I", "10708833", "10710342", "+", ">13_B0205.10_Inf5.0_OG0011445-R1-1-A1"])
 
-    @patch('run_GenePS.PredictionObject.check_for_overlapp_if_same_contig', autospec=True, side_effect=overlapp_side_effect)
-    @patch("builtins.print", autospec=True, return_value=None)
-    def test_three_overlapp(self, print_function, overlapp):
-        count_valid = 0
-        count_overlapp = self.overseer.contigwise_overlapping_control("group", "I")
-        self.assertEqual(2, count_overlapp)     # 2 because although 3 are overlapping, just two regions get filtered
-        for cluster in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"]:
-            count_valid += len(self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"][cluster]["I"])
-        self.assertEqual(3, count_valid)
+    def test_infer_prediction_objects(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        obj_list = genblast_obj.infer_prediction_objects(self.hmm_scores, "cluster", "cut_off", "length_range")
+        for obj in obj_list:
+            header = obj.region.header
+            self.assertEqual(obj.score, self.hmm_scores[header])
+            self.assertEqual(obj.gene_length, int(genblast_obj.regions[header].s_end) - int(genblast_obj.regions[header].s_start))
+            self.assertEqual(obj.strand, genblast_obj.regions[header].strand)
+            self.assertEqual(obj.contig, genblast_obj.regions[header].contig)
+            self.assertEqual(obj.cluster, "cluster")
+            self.assertEqual(obj.cutoff, "cut_off")
 
-    @patch('run_GenePS.PredictionObject.check_for_overlapp_if_same_contig', autospec=True, side_effect=overlapp_side_effect)
-    @patch("builtins.print", autospec=True, return_value=None)
-    def test_three_overlapp_correct_pick(self,  print_function, overlapp):
-        self.overseer.contigwise_overlapping_control("group", "I")
-        winner_names = ["four", "three", "one"]
-        for cluster in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"]:
-            for obj in self.overseer.group_by_cluster_by_contig_to_valid_prediction["group"][cluster]["I"]:
-                self.assertIn(obj.cluster, winner_names)
+    def test_remove_overlapping_predictions(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        obj_list = genblast_obj.infer_prediction_objects(self.hmm_scores, "cluster", "cut_off", "length_range")
+        filtered, passed = genblast_obj.separate_self_overlapping_predictions(self.hmm_scores, obj_list)
+        self.assertEqual(len(filtered) + len(passed), len(obj_list))
+        for p_obj in passed:
+            self.assertIn(p_obj.region.header, [">13_B0205.10_Inf5.0_OG0011445-R1-1-A1", ">14_B0205.10_Inf5.0_OG0011445-R1-1-A1"])
 
-        #Region(contig='III', s_start=8424615, s_end=8434740, strand='+', chunk_cov=100, query_cov=5, q_len=968)
+    def test_fill_prediction_objects(self):
+        genblast_obj = Exonerate_GenBlast_Wrapper.GenblastObject(self.file_path_dict)
+        genblast_obj.hash_gff_and_infer_regions()
+        obj_list = genblast_obj.infer_prediction_objects(self.hmm_scores, "cluster", "cut_off", "length_range")
+        filtered, passed = genblast_obj.separate_self_overlapping_predictions(self.hmm_scores, obj_list)
+        genblast_obj.fill_prediction_objects()
+        for test_obj in genblast_obj.pred_obj:
+            if test_obj.region.header == ">13_B0205.10_Inf5.0_OG0011445-R1-1-A1":
+                self.assertEqual(len(test_obj.protein), 446)
+                self.assertEqual(len(test_obj.DNA), 1338)
+                self.assertEqual(len(test_obj.gff), 5)
+'''
 
 if __name__ == '__main__':
     unittest.main()

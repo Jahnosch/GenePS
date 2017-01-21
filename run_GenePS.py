@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 '''
-Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-s <INT>] [-o <DIR>] [--keep] [--verbose] [--frag]
+Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-o <DIR>] [--keep] [--verbose] [--frag] [--quick]
 
     Options:
         -h, --help                            show this screen.
 
         General
-        -m, --GenePS_result_dir <DIR>         folder with consensus/score results from make_Datasets.py
-        -g, --genome <FILE|LIST>              Target genome or a ".genomes" file in style of: path/to/genome <TAB> name_prefix
+        -m, --GenePS_result_dir <DIR>         Directory with results from build_models.py
+        -g, --genome <FILE|LIST>              Single genome fasta-file or a many lines ".txt"-file in style of: name=path/to/genome
         Optional
-        -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome (used to filter Blast hits)
+        -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome in % (used to filter Blast hits)
         -o, --out_dir <DIR>                   Directory for the output files and folders (default: same as input directory)
-        -s, --HMM_filter <INT>                Factor to multiply the HMM set cut off value. Default 1
-        --frag                                If enabled, filters potentially fragmented gene models. Default None
-        --keep                                Will store intermediate file (Blast output, merged regions, exonerate output)
-        --verbose                             Prints log-file information to the screen
+        --quick                               Omits exhaustive prediction refinements through and additional exonerate -E yes run (faster but less accurate)
+        --frag                                If enabled, a length filter will be applied to remove potentially fragmented predictions
+        --keep                                Keeps intermediate files (Blast output, merged regions, exonerate output)
+        --verbose                             Prints progress details to the screen
 
 '''
 
@@ -24,16 +24,15 @@ import sys
 import logging
 import tempfile as tmp
 from docopt import docopt
-from run_command import tempdir, check_programs
-from exonerate_parser import run_exonerate, ExonerateObject, extract_protein_fasta_string, write_exonerate_gff, exonerate_best_raw_score
-from find_regions import run_tblastn, make_blast_db
+from shared_code_box import tempdir, check_programs, get_phmm_score, write_to_tempfile, get_outdir, hash_fasta
+from Exonerate_GenBlast_Wrapper import run_exonerate, all_proteins_to_fasta_string,\
+    isolate_overlapping_predictions, PredictionObject
+from Blast_wrapper import run_tblastn, make_blast_db
 from collections import defaultdict
-from make_Datasets import get_phmm_score, write_to_tempfile, get_outdir, hash_fasta, write_hash_to_fasta
 
 ########################################################################################################################
 # Global Functions
 ########################################################################################################################
-cutoff_factor = 1
 coverage_min = 30
 data_base = None
 gene_ps_results = None
@@ -42,6 +41,7 @@ keep = None
 verbose = None
 genome = None
 frag = None
+quick = None
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 logger_blast_region = logging.getLogger("BLAST")
@@ -49,17 +49,35 @@ logger_prediction = logging.getLogger("Exonerate")
 logger_validate = logging.getLogger("Filtering")
 
 
+def format_genome_hash(argument):
+    genome_hash = {}
+    error_list = []
+    if args['--genome'].split(".")[-1] == "txt":
+        with open(args['--genome']) as g_file:
+            for genome_line in g_file:
+                try:
+                    genome_line = genome_line.strip("\n").split("=")
+                    if os.path.exists(genome_line[1]):
+                        genome_hash[genome_line[1]] = genome_line[0]
+                    else:
+                        error_list.append("[!]\t ERROR: {} does not exist or was specified wrongly".format(genome_line[0]))
+                except IndexError:
+                    error_list.append("[!]\t ERROR: genome file is not a TAB-SEPARATED 2-column file".format(genome_line))
+    else:
+        try:
+            genome_hash[os.path.abspath(args["--genome"])] = os.path.split(args["--genome"])[-1].split(".")[0]
+        except IndexError:
+            genome_hash[os.path.abspath(args["--genome"])] = os.path.split(args["--genome"])
+    return error_list, genome_hash
+
+
 def check_arguments(args):
-    global coverage_min, cutoff_factor, out_dir, gene_ps_results, keep, verbose, genome, frag
+    global coverage_min, out_dir, gene_ps_results, keep, verbose, genome, frag, quick
     gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
-    genome_hash = None
-    out_dir = "/".join(gene_ps_results.split("/")[:-1])
-    if args['--keep']:
-        keep = args['--keep']
-    if args['--verbose']:
-        verbose = args['--verbose']
-    if args['--frag']:
-        frag = args['--frag']
+    keep = args['--keep']
+    verbose = args['--verbose']
+    frag = args['--frag']
+    quick = args['--quick']
     error_list = []
     if not os.path.exists(gene_ps_results):
         error_list.append("[!]\t ERROR: input directory: {} does not exist".format(gene_ps_results))
@@ -70,31 +88,15 @@ def check_arguments(args):
             coverage_min = int(args['--coverage_filer'])
         except ValueError:
             error_list.append("[!]\t ERROR: coverage_min needs integer; '{}' is not an integer".format(coverage_min))
-    if args['--HMM_filter']:
-        try:
-            cutoff_factor = float(args['--HMM_filter'])
-        except ValueError:
-            error_list.append("[!]\t ERROR: coverage_min needs float or integer; '{}'".format(cutoff_factor))
     if args["--out_dir"]:
         if os.path.isdir(args["--out_dir"]):
-            out_dir = os.path.abspath(args["--out_dir"])
+            out_dir = get_outdir(args["--out_dir"])
         else:
-            error_list.append("[!]\t ERROR: output directory: {} does not exist".format(out_dir))
-    if args['--genome'].split(".")[-1] == "txt":
-        genome_hash = {}
-        with open(args['--genome']) as g_file:
-            for genome_line in g_file:
-                try:
-                    genome_line = genome_line.strip("\n").split("\t")
-                    len(genome_line) == 2
-                    if os.path.exists(genome_line[0]):
-                        genome_hash[genome_line[0]] = genome_line[1]
-                    else:
-                        error_list.append("[!]\t ERROR: {} does not exist or was specified wrongly".format(genome_line[0]))
-                except IndexError:
-                    error_list.append("[!]\t ERROR: genome file is not a TAB-SEPARATED 2-column file".format(genome_line))
+            out_dir = get_outdir("/".join(gene_ps_results.split("/")[:-1]), add_dir=args["--out_dir"])
     else:
-        error_list.append("[!]\t ERROR: genome file is not a txt file".format(args['--genome']))
+        out_dir = get_outdir("/".join(gene_ps_results.split("/")[:-1]), add_dir="Predictions")
+    errors, genome_hash = format_genome_hash(args)
+    error_list.extend(errors)
     if error_list:
         print("[!] {} - ARGUMENT ERRORS\n".format(len(error_list)))
         print("\n".join(error_list))
@@ -121,9 +123,9 @@ def markov_model_scoring(fasta_string, hmm):
     if hmm:
         with tmp.NamedTemporaryFile() as ex_file:
             write_to_tempfile(ex_file.name, fasta_string)
-            normalized_score_hash = get_phmm_score(hmm, ex_file.name)
-        if normalized_score_hash is not None:
-            return normalized_score_hash
+            score_hash = get_phmm_score(hmm, ex_file.name)
+            if score_hash:
+                return score_hash
     return None
 
 
@@ -138,18 +140,58 @@ def write_merged_region_to_intermediate(blast_ob):
     return "\n".join(results_list)
 
 
-def exonerate_prediction(region_fasta, query_fasta, dir_path):
-    fasta_hash = hash_fasta(query_fasta)
+def find_best_exonerate_result(region_tuple, region_fasta, group, cluster, dir_path):
+    '''first aligns all proteins in p2g mode, scores them against the hmm and extracts the highest scoring predictions.
+    Then the corresponding actual proteins of those are re-aligned in p2g -E yes mode. Returned exonerate object,
+    holds thoses (few-best) predictions -> needs for further filtering.'''
+    query_fasta = data_base.group_by_cluster_to_fasta_file[group][cluster]
+    query_hash = data_base.group_by_cluster_to_fasta_hash[group][cluster]
+    hmm = data_base.group_by_cluster_to_hmm[group][cluster]
+    cutoff = data_base.group_by_cluster_to_score_cutoff[group][cluster]
+    length_range = data_base.group_by_cluster_to_length_range[group][cluster]
     with tmp.NamedTemporaryFile() as reg_file:
         write_to_tempfile(reg_file.name, region_fasta)
-        best_align_score_query = exonerate_best_raw_score("-m p2g -E no", query_fasta, reg_file.name)
-        if best_align_score_query:
-            with tmp.NamedTemporaryFile() as q_file:
-                write_to_tempfile(q_file.name, ">{}\n{}".format(best_align_score_query, fasta_hash[">{}".format(best_align_score_query)][0]))
-                ex_name = "{}.exon".format(q_file.name)
-                ex_obj = run_exonerate("-m p2g -E yes", ex_name, dir_path, reg_file.name, q_file.name)
-                return ex_obj
-    return None
+        ex_obj = run_exonerate("-m p2g -E no", "{}.exon_p2g", dir_path, reg_file.name, query_fasta)
+        try:
+            TP_scores = markov_model_scoring(all_proteins_to_fasta_string(ex_obj), hmm)
+            if not quick:
+                max_score = max(list(TP_scores.values()))
+                max_header = set([header.split(";")[0] for header, score in TP_scores.items() if score == max_score])
+                with tmp.NamedTemporaryFile() as q_file:
+                    max_val_fasta = "\n".join(["{}\n{}".format(header, query_hash[header]) for header in max_header])
+                    write_to_tempfile(q_file.name, max_val_fasta)
+                    ex_obj = run_exonerate("-m p2g -E yes", "{}.exon".format(q_file.name), dir_path, reg_file.name, q_file.name)
+                    TP_scores = markov_model_scoring(all_proteins_to_fasta_string(ex_obj), hmm)
+            best_pred = []
+            for key_tuple in ex_obj.target_dna:
+                score_id = ">" + key_tuple.query + ";{}".format(key_tuple.idx)
+                pred_obj = PredictionObject(region_tuple, TP_scores[score_id], cluster, cutoff, length_range)
+                pred_obj.infer_data_from_exonerate_obj(ex_obj, key_tuple)
+                best_pred.append(pred_obj)
+            filtered, passed = isolate_overlapping_predictions(sorted(best_pred, key=lambda x: x.score, reverse=True))
+            return ex_obj, passed
+        except (AttributeError, TypeError, KeyError):
+            return None, None
+
+
+def prediction_filter(pred_obj, TN_HMM):
+    status = False
+    TP_score = pred_obj.score
+    if TP_score and TP_score >= pred_obj.cutoff:
+        if TN_HMM:
+            protein_fasta = ">{}\n{}".format(pred_obj.cluster, pred_obj.protein)
+            try:
+                TN_score = list(markov_model_scoring(protein_fasta, TN_HMM).values())[0]
+                if TN_score < TP_score:
+                    status = True
+            except AttributeError:
+                pass
+        else:
+            status = True
+    if frag and status is True:
+        if pred_obj.fragmentation_check() is True:
+            status = "FRAG"
+    return status
 
 
 ########################################################################################################################
@@ -163,11 +205,12 @@ class DataProviderObject:
         self.group_names = []
         self.group_to_original_path = {}
         self.group_to_group_size = {}
-        self.group_by_cluster_to_consensus_sequence = defaultdict(dict)
+        self.group_to_consensus_file = {}
         self.group_by_cluster_to_hmm = defaultdict(dict)
         self.group_by_cluster_to_TN_hmm = defaultdict(dict)
-        self.group_by_cluster_to_fasta = defaultdict(dict)
-        self.group_by_cluster_to_len_confidence = defaultdict(dict)
+        self.group_by_cluster_to_fasta_file = defaultdict(dict)
+        self.group_by_cluster_to_fasta_hash = defaultdict(dict)
+        self.group_by_cluster_to_length_range = defaultdict(dict)
         self.group_by_cluster_to_score_cutoff = defaultdict(dict)
         self.cluster_scope = self.load_data_and_initialize_global_variables()
 
@@ -204,6 +247,7 @@ class DataProviderObject:
                     with open(group_file) as mg:
                         group_name = mg.readline().split(":")[1].strip()
                         self.group_names.append(group_name)
+                        self.group_to_consensus_file[group_name] = os.path.join(self.gene_ps_results, group_name + ".fa.consensus")
                         self.group_to_original_path[group_name] = group_file
                         self.group_to_group_size[group_name] = int(mg.readline().split(":")[1].strip())
                         input_scope += self.group_to_group_size[group_name]
@@ -212,9 +256,8 @@ class DataProviderObject:
                                 cluster = line.split(":")[1].strip()
                                 cluster_count += 1
                                 score = mod_next()[1].strip().split(",")
-                                self.group_by_cluster_to_score_cutoff[group_name][cluster] = cutoff_factor * float(score[0])
-                                self.group_by_cluster_to_len_confidence[group_name][cluster] = mod_next()[1].strip().split(",")
-                                self.group_by_cluster_to_consensus_sequence[group_name][cluster] = mod_next()[0]
+                                self.group_by_cluster_to_score_cutoff[group_name][cluster] = float(score[0])
+                                self.group_by_cluster_to_length_range[group_name][cluster] = mod_next()[1].strip().split(",")
                                 if os.path.exists(os.path.join(self.gene_ps_results, cluster + ".TN_hmm")):
                                     self.group_by_cluster_to_TN_hmm[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".TN_hmm")
                                 else:
@@ -222,7 +265,8 @@ class DataProviderObject:
                                 files_not_found = self.validate_path_files(cluster)
                                 if not files_not_found:
                                     self.group_by_cluster_to_hmm[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".hmm")
-                                    self.group_by_cluster_to_fasta[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".fasta")
+                                    self.group_by_cluster_to_fasta_file[group_name][cluster] = os.path.join(self.gene_ps_results, cluster + ".fasta")
+                                    self.group_by_cluster_to_fasta_hash[group_name][cluster] = hash_fasta(self.group_by_cluster_to_fasta_file[group_name][cluster])
                                 else:
                                     error_list += files_not_found
                             else:
@@ -231,65 +275,13 @@ class DataProviderObject:
 
 
 ########################################################################################################################
-# Class PredictionObject
-########################################################################################################################
-class PredictionObject:
-    def __init__(self, region, score, cluster, cutoff, length_range):
-        self.cluster = cluster
-        self.score = score
-        self.cutoff = cutoff
-        self.region = region
-        self.length_range = length_range
-        self.DNA = None
-        self.protein = None
-        self.gff = None
-        self.strand = None
-        self.contig = None
-        self.blast_location = None
-        self.gene_start = None
-        self.gene_end = None
-        self.gene_length = None
-        self.fragmented = None
-
-    def set_up_model_values(self, model_hash, best_hit_key):
-        self.contig = self.region.contig
-        self.strand = self.region.strand
-        self.blast_location = (int(self.region.s_start), int(self.region.s_end))
-        if type(model_hash) == ExonerateObject:
-            best_hit_key = best_hit_key.strip(">")
-            self.DNA = list(model_hash.target_dna[best_hit_key].values())[0]
-            self.protein = list(model_hash.target_prot[best_hit_key].values())[0]
-            self.gff = write_exonerate_gff(list(model_hash.gff[best_hit_key].values())[0], self.blast_location, self.strand)
-            self.strand = self.gff[0].split("\t")[6]
-            self.gene_start, self.gene_end = [int(x) for x in self.gff[0].split("\t")[3:5]]
-            self.gene_length = abs(self.gene_end - self.gene_start)
-
-    def fragmentation_check(self):
-        if float(self.length_range[0]) <= len(self.protein) <= float(self.length_range[1]):
-            self.fragmented = False
-        else:
-            self.fragmented = True
-        return self.fragmented
-
-    def overlap_on_same_contig(self, other):
-        if self != other:
-            coordinates = [other.gene_start, other.gene_end, self.gene_start, self.gene_end]
-            if (other.gene_length + self.gene_length) >= (max(coordinates) - min(coordinates)):
-                if self.strand == other.strand:
-                    return True
-                else:
-                    return False
-        return False
-
-
-########################################################################################################################
 # Class Overseer
 ########################################################################################################################
 
 class Overseer:
-    def __init__(self, g_prefix, blast_db, prediction_location):
+    def __init__(self, g_prefix, genome_location, prediction_location):
         self.g_prefix = g_prefix
-        self.blast_db_path = blast_db
+        self.genome_path = genome_location
         self.root_directory = prediction_location
         self.group_to_out_dir = {}
         self.group_to_blast_obj = {}
@@ -303,8 +295,6 @@ class Overseer:
         self.group_by_cluster_to_amount_correctly_predicted = defaultdict(lambda: defaultdict(int))
 
         # results
-        self.group_by_cluster_blast_filtered_region = defaultdict(lambda: defaultdict(list))
-        self.group_by_cluster_no_prediction_region = defaultdict(lambda: defaultdict(list))
         self.group_by_contig_to_passed_prediction_list = defaultdict(lambda: defaultdict(list))
         self.group_by_cluster_by_contig_to_filtered_prediction = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         self.group_by_cluster_by_contig_to_valid_prediction = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
@@ -323,32 +313,23 @@ class Overseer:
             if not os.path.exists(group_specific_dir):
                 os.mkdir(group_specific_dir)
             else:
-                logging.warning("[!] {} folder already existed and content will be overwritten".format(folder_name))
+                logging.warning("[!] {} folder already exists; content will be overwritten".format(folder_name))
             self.group_to_out_dir[group] = os.path.join(group_specific_dir, folder_name)
         return self.group_to_out_dir
 
     ####################################################################################################################
     # Overseer: Find Region
     ####################################################################################################################
-    #function exists in make Datasets.py
-    def from_header_list_to_fasta(self, header_list, group_name, file_path):
-        with open(file_path + ".consensus", "w") as c_file:
-            for header_key in header_list:
-                fasta_str = ">{}\n{}\n".format(header_key, data_base.group_by_cluster_to_consensus_sequence[group_name][header_key])
-                c_file.write(fasta_str)
-        return file_path + ".consensus"
 
     # --> from_header_list_to_fasta
-    def blast_all_consensus(self, out_directory):
+    def blast_all_consensus(self, tmp_directory):
         self.merged_regions = 0
         for group in data_base.group_names:
-            header_list = list(data_base.group_by_cluster_to_consensus_sequence[group].keys())
-            file_path = os.path.join(out_directory, group)
-            consensus_file = self.from_header_list_to_fasta(header_list, group, file_path)
+            consensus_file = data_base.group_to_consensus_file[group]
             if keep:
-                blast_obj = run_tblastn(self.blast_db_path, consensus_file, self.group_to_out_dir[group] + "_intermediate_blast.txt")
+                blast_obj = run_tblastn(self.genome_path, consensus_file, self.group_to_out_dir[group] + "_intermediate_blast.txt")
             else:
-                blast_obj = run_tblastn(self.blast_db_path, consensus_file, os.path.join(out_directory, group))
+                blast_obj = run_tblastn(self.genome_path, consensus_file, os.path.join(tmp_directory, group))
             if blast_obj is not None:
                 blast_obj.infer_regions()
                 self.merged_regions += blast_obj.amount_regions
@@ -360,107 +341,60 @@ class Overseer:
                 logger_blast_region.warning("No Candidate regions found - group: {}".format(group))
         return self.merged_regions
 
-    ####################################################################################################################
-    # Overseer: Prediction
-    ####################################################################################################################
-
-    ####################
-    # make PredictionObj
-    ####################
-    def test_tp_score_condition(self, group, pred_obj, TP_score, cutoff):
-        if TP_score > cutoff:
-            if frag is True and pred_obj.fragmentation_check() is False:
-                self.group_by_contig_to_passed_prediction_list[group][pred_obj.contig].append(pred_obj)
-                return True
-            elif frag is True and pred_obj.fragmentation_check() is True:
-                self.group_to_fragmented_predictions[group] += 1
-                self.group_by_cluster_by_contig_to_filtered_prediction[group][pred_obj.cluster][pred_obj.contig].append(pred_obj)
-                logger_validate.info("Fragmented - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {} score: {}".format(self.g_prefix, group, pred_obj.cluster, pred_obj.contig, pred_obj.gene_start, pred_obj.gene_end, pred_obj.strand, pred_obj.score))
-                return False
-            else:
-                self.group_by_contig_to_passed_prediction_list[group][pred_obj.contig].append(pred_obj)
-                return True
-        logger_validate.info("Filtered - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {} score: {}".format(self.g_prefix, group, pred_obj.cluster, pred_obj.contig, pred_obj.gene_start, pred_obj.gene_end, pred_obj.strand, pred_obj.score))
-        self.group_by_cluster_by_contig_to_filtered_prediction[group][pred_obj.cluster][pred_obj.contig].append(pred_obj)
-        return False
-
-    def regional_prediction_filter(self, group, cluster, exo_obj, region_x):
-        passed_pred = False
-        prediction_fasta = extract_protein_fasta_string(exo_obj)
-        TP_scores = markov_model_scoring(prediction_fasta, data_base.group_by_cluster_to_hmm[group][cluster])
-        TN_scores = markov_model_scoring(prediction_fasta, data_base.group_by_cluster_to_TN_hmm[group][cluster])
-        if TP_scores:
-            best_pred_key = max(TP_scores, key=lambda key: TP_scores[key])
-            pred_obj = PredictionObject(region_x, TP_scores[best_pred_key], cluster, data_base.group_by_cluster_to_score_cutoff[group][cluster], data_base.group_by_cluster_to_len_confidence[group][cluster])
-            pred_obj.set_up_model_values(exo_obj, best_pred_key)
-            if TN_scores and best_pred_key in TN_scores:
-                if TP_scores[best_pred_key] > TN_scores[best_pred_key]:
-                    passed_pred = self.test_tp_score_condition(group, pred_obj, TP_scores[best_pred_key], data_base.group_by_cluster_to_score_cutoff[group][cluster])
-                else:
-                    self.group_by_cluster_by_contig_to_filtered_prediction[group][cluster][pred_obj.contig].append(pred_obj)
-                    logger_validate.info("Filtered - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {} score: {}".format(self.g_prefix, group, pred_obj.cluster, pred_obj.contig, pred_obj.gene_start, pred_obj.gene_end, pred_obj.strand, pred_obj.score))
-            else:
-                passed_pred = self.test_tp_score_condition(group, pred_obj, TP_scores[best_pred_key], data_base.group_by_cluster_to_score_cutoff[group][cluster])
-        return passed_pred
-
-    #############################################
-    # check whether two cluster claim same region
-    #############################################
-
-    def contigwise_overlapping_control(self, group, contig):
-        count_overlap = 0
-        previous_interactions = set()
-        for pred_obj in self.group_by_contig_to_passed_prediction_list[group][contig]:
-            region_owner = pred_obj
-            if pred_obj not in previous_interactions:
-                highest_score = 0
-                for next_pred_obj in self.group_by_contig_to_passed_prediction_list[group][contig]:
-                    if pred_obj.overlap_on_same_contig(next_pred_obj):
-                        previous_interactions.update([pred_obj, next_pred_obj])     # can still be same cluster but overlapping on different strands!
-                        highest_score = max([pred_obj.score, next_pred_obj.score, highest_score])
-                        count_overlap += 1
-                        if next_pred_obj.score == highest_score:
-                            region_owner = next_pred_obj
-                            logger_validate.info("overlapping predictions - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {}".format(self.g_prefix, group, pred_obj.cluster, contig, str(pred_obj.gene_start), str(pred_obj.gene_end), pred_obj.strand))
-                            self.group_by_cluster_by_contig_to_filtered_prediction[group][pred_obj.cluster][contig].append(pred_obj)
-                        elif pred_obj.score == highest_score:
-                            region_owner = pred_obj
-                            self.group_by_cluster_by_contig_to_filtered_prediction[group][next_pred_obj.cluster][contig].append(next_pred_obj)
-                            logger_validate.info("overlapping predictions - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {}".format(self.g_prefix, group, next_pred_obj.cluster, contig, str(next_pred_obj.gene_start), str(next_pred_obj.gene_end), next_pred_obj.strand))
-                        else:
-                            pass
-                self.group_by_cluster_by_contig_to_valid_prediction[group][region_owner.cluster][region_owner.contig].append(region_owner)
-                self.group_by_cluster_to_amount_correctly_predicted[group][region_owner.cluster] += 1
-                print("\t[+] VALID PREDICTION - genome: {} group: {} cluster: {} contig: {} location: {}_{} strand: {}".format(self.g_prefix, group, region_owner.cluster, region_owner.contig, region_owner.gene_start, region_owner.gene_end, region_owner.strand))
-        return count_overlap
-
-    ############################################################################################
+    ##############################################################################################
     # run exonerate on all region -> regional prediction filter -> contigwise_overplapping_control
-    ############################################################################################
+    ##############################################################################################
 
-    def predict_on_all_regions(self, out_directory):
+    def inform_overseer_about_status(self, status, group, pred_obj):
+        if status is True:
+            self.group_by_contig_to_passed_prediction_list[group][pred_obj.contig].append(pred_obj)
+            return 0
+        elif status is False:
+            self.group_by_cluster_by_contig_to_filtered_prediction[group][pred_obj.cluster][pred_obj.contig].append(pred_obj)
+            logger_validate.info("Filtered - genome: {} group: {} cluster: {} loci: {} {}_{} {} score: {}".format(self.g_prefix, group, pred_obj.cluster, pred_obj.contig, pred_obj.gene_start, pred_obj.gene_end, pred_obj.strand, pred_obj.score))
+            return 1
+        elif status == "FRAG":
+            self.group_to_fragmented_predictions[group] += 1
+            self.group_by_cluster_by_contig_to_filtered_prediction[group][pred_obj.cluster][pred_obj.contig].append(pred_obj)
+            logger_validate.info("Fragmented - genome: {} group: {} cluster: {} loci: {} {}_{} {} score: {}".format(self.g_prefix, group, pred_obj.cluster, pred_obj.contig, pred_obj.gene_start, pred_obj.gene_end, pred_obj.strand, pred_obj.score))
+            return 1
+        else:
+            raise SyntaxError("[!] only TRUE FALSE FRAG possible in 'inform_overseer_about_status")
+
+    def inform_overseer_about_overlap(self, group, filtered_obj_list, passed_obj_list):
+        filtered = 0
+        for f_pred in filtered_obj_list:
+            filtered += 1
+            self.group_by_cluster_by_contig_to_filtered_prediction[group][f_pred.cluster][f_pred.contig].append(f_pred)
+            logger_validate.info("overlapping predictions - genome: {} group: {} cluster: {} loci: {} {}_{} {}".format(self.g_prefix, group, f_pred.cluster, f_pred.contig, str(f_pred.gene_start), str(f_pred.gene_end), f_pred.strand))
+        for p_pred in passed_obj_list:
+            print("\t[+] VALID PREDICTION - genome: {} group: {} cluster: {} loci: {} {}_{} {} score: {}".format(self.g_prefix, group, p_pred.cluster, p_pred.contig, p_pred.gene_start, p_pred.gene_end, p_pred.strand, p_pred.score))
+            self.group_by_cluster_to_amount_correctly_predicted[group][p_pred.cluster] += 1
+            self.group_by_cluster_by_contig_to_valid_prediction[group][p_pred.cluster][p_pred.contig].append(p_pred)
+        return filtered
+
+    def get_exonerate_models(self, out_directory):
         for group in self.group_to_blast_obj:
             for contig in self.group_to_blast_obj[group].inferred_regions:
-                for cluster in self.group_to_blast_obj[group].inferred_regions[contig]:
-                    for region in self.group_to_blast_obj[group].inferred_regions[contig][cluster]:
+                for cluster, region_list in self.group_to_blast_obj[group].inferred_regions[contig].items():
+                    for region in region_list:
                         if coverage_filter(region) is True:
                             region_fasta = self.group_to_blast_obj[group].region_tuple_to_fasta[region]
-                            query_fasta = data_base.group_by_cluster_to_fasta[group][cluster]
-                            exo_obj = exonerate_prediction(region_fasta, query_fasta, out_directory)
+                            exo_obj, pred_obj_list = find_best_exonerate_result(region, region_fasta, group, cluster, out_directory)
                             if exo_obj is None:
-                                self.group_by_cluster_no_prediction_region[group][cluster].append((region.contig, region.s_start, region.s_end))
                                 self.filter_count += 1
-                                logger_prediction.info("No Exonerate prediction - genome: {} group: {} cluster: {} contig: {} region: {}_{}".format(
-                                    self.g_prefix, group, cluster, region.contig, region.s_start, region.s_end))
+                                logger_prediction.info("No Exonerate prediction - genome: {} group: {} cluster: {} loci: {} {}_{}".format(self.g_prefix, group, cluster, region.contig, region.s_start, region.s_end))
                             else:
+                                self.merged_regions += len(pred_obj_list) - 1
                                 self.exonerate_file_paths.append(exo_obj.path)
-                                if self.regional_prediction_filter(group, cluster, exo_obj, region) is False:
-                                    self.filter_count += 1
+                                for pred_obj in pred_obj_list:
+                                    status = prediction_filter(pred_obj, data_base.group_by_cluster_to_TN_hmm[group][cluster])
+                                    self.filter_count += self.inform_overseer_about_status(status, group, pred_obj)
                         else:
-                            self.group_by_cluster_blast_filtered_region[group][cluster].append((region.contig, region.s_start, region.s_end))
                             self.filter_count += 1
-                amount_overlapp_contig = self.contigwise_overlapping_control(group, contig)
-                self.filter_count += amount_overlapp_contig
+                            logger_validate.info("Low Coverage - genome: {} group: {} cluster: {} loci: {} {}_{} {} cov_chunk: {} cov_total:{}".format(self.g_prefix, group, cluster, contig, region.s_start, region.s_end, region.strand, region.chunk_cov, region.query_cov))
+                overlap_list, passed_list = isolate_overlapping_predictions(self.group_by_contig_to_passed_prediction_list[group][contig])
+                self.filter_count += self.inform_overseer_about_overlap(group, overlap_list, passed_list)
         return self.merged_regions - self.filter_count
 
     ####################################################################################################################
@@ -520,7 +454,7 @@ class Overseer:
         for group in data_base.group_names:
             if group in self.group_by_cluster_by_contig_to_valid_prediction:
                 found = 0
-                for cluster in data_base.group_by_cluster_to_consensus_sequence[group]:
+                for cluster in data_base.group_by_cluster_to_score_cutoff[group]:
                     if cluster not in self.group_by_cluster_by_contig_to_valid_prediction[group]:
                         cluster_array.append([group, cluster] + ["-"] * 5)
                     else:
@@ -540,16 +474,21 @@ class Overseer:
 ########################################################################################################################
 
 
-def locate_all_genes_genome_wise(current_genome, blast_db_path, prediction_out_path):
-    overseer_obj = Overseer(current_genome, blast_db_path, prediction_out_path)
+def run_GenePS_on_single_genome(current_genome, genome_location, mode="exonerate"):
+    prediction_output = get_outdir(out_dir, add_dir=current_genome)
+    overseer_obj = Overseer(current_genome, genome_location, prediction_output)
     overseer_obj.make_group_directories()
-    amount_merged_regions = overseer_obj.blast_all_consensus(tmp_dir)
-    amount_valid_predictions = overseer_obj.predict_on_all_regions(tmp_dir)
-    written_valid, written_filtered = overseer_obj.write_output()
-    if written_valid == amount_valid_predictions and \
-                    overseer_obj.filter_count == (amount_merged_regions - amount_valid_predictions):
-            return overseer_obj.get_summary_statistics()
+    if mode == "exonerate":
+        db_path = make_blast_db(genome_location, os.path.split(genome_location)[0])
+        amount_merged_regions = overseer_obj.blast_all_consensus(tmp_dir)
+        amount_valid_predictions = overseer_obj.get_exonerate_models(tmp_dir)
     else:
+        raise Exception("[!] unknown mode: {}".format(mode))
+    written_valid, written_filtered = overseer_obj.write_output()
+    if written_valid == amount_valid_predictions and overseer_obj.filter_count == (overseer_obj.merged_regions - amount_valid_predictions):
+        return overseer_obj.get_summary_statistics()
+    else:
+        print(written_filtered, written_valid, overseer_obj.merged_regions, overseer_obj.filter_count, amount_valid_predictions)
         print("\n[!] unexpected proportions\n")
         logging.error("number of Clusters written to files is not in line with the expectations")
         sys.exit()
@@ -562,9 +501,6 @@ if __name__ == "__main__":
     __version__ = 0.1
     args = docopt(__doc__)
 
-    #############################
-    # read and process input data
-    #############################
     print("\n[+] Checking Arguments and Dependencies...")
     check_programs("tblastn", "makeblastdb", "exonerate")
     genome_dict = check_arguments(args)
@@ -574,29 +510,8 @@ if __name__ == "__main__":
     cluster_scope = data_base.cluster_scope
     print("   -> Okay\n")
 
-    ###############################
-    # make dictionary for all paths
-    ###############################
-    print("\n[+] Generating BLAST db(s)\n")
-    g_prefix_to_db_and_out_dir = {}
-    blast_db_dir = get_outdir(out_dir, add_dir="Blast_dbs")
-    prediction_dir = get_outdir(out_dir, add_dir="Predictions")
-    if genome_dict is None:
-        db_path = make_blast_db(genome, blast_db_dir)
-        genome_prefix = "single_genome"
-        g_prefix_to_db_and_out_dir[genome_prefix] = (db_path, prediction_dir)
-    else:
-        for genome_path, genome_prefix in genome_dict.items():
-            blast_db = get_outdir(blast_db_dir, add_dir=genome_prefix)
-            prediction_path = get_outdir(prediction_dir, add_dir=genome_prefix)
-            db_path = make_blast_db(genome_path, blast_db)
-            g_prefix_to_db_and_out_dir[genome_prefix] = (db_path, prediction_path)
-
-    ######################
-    # setting up log files
-    ######################
-    print("\n\n# {} Genome(s) - {} Group(s) - {} Cluster(s)\n{}\n".format(str(len(g_prefix_to_db_and_out_dir)), str(len(data_base.group_names)), str(cluster_scope), "#"*42))
-    log_path = os.path.join(prediction_dir, "LOG.txt")
+    print("\n\n# {} Genome(s) - {} Group(s) - {} Cluster(s)\n{}\n".format(str(len(genome_dict)), str(len(data_base.group_names)), str(cluster_scope), "#"*42))
+    log_path = os.path.join(out_dir, "LOG.txt")
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', datefmt='%m-%d %H:%M', filename=log_path, filemode='w')
     if verbose is not None:
         formatter = logging.Formatter('\t%(message)s')
@@ -609,10 +524,10 @@ if __name__ == "__main__":
     ####################
     with tempdir() as tmp_dir:
         genome_count = 1
-        for single_genome_prefix, db_out_tuple in g_prefix_to_db_and_out_dir.items():
-            logging.info("[{}] Analysing genome: {}\n".format(str(genome_count), single_genome_prefix))
-            group_summary, cluster_summary = locate_all_genes_genome_wise(single_genome_prefix, db_out_tuple[0], db_out_tuple[1])
-            with open(os.path.join(db_out_tuple[1], "summary.txt"), "w") as sum_file:
+        for genome_path, genome_prefix in genome_dict.items():
+            logging.info("[{}] Analysing genome: {}\n".format(str(genome_count), genome_prefix))
+            group_summary, cluster_summary = run_GenePS_on_single_genome(genome_prefix, genome_path, mode="exonerate")
+            with open(os.path.join(out_dir, "{}/summary.txt".format(genome_prefix)), "w") as sum_file:
                 sum_file.write(group_summary)
                 sum_file.write("\n{}\n".format(100 * "-"))
                 sum_file.write(cluster_summary)

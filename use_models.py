@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 '''
-Usage: use_models.py                          -m <DIR> -g <FILE> [-c <INT>] [-o <DIR>] [--keep] [--verbose] [--frag] [--quick]
+Usage: use_models.py                          -i <DIR> -g <FILE> [-c <INT>] [-o <DIR>] [--keep] [--verbose] [--frag] [--quick]
 
     Options:
         -h, --help                            show this screen.
 
         General
-        -m, --GenePS_result_dir <DIR>         Directory with results from build_models.py
+        -i, --use_models_input <DIR>          Directory with results from build_models.py
         -g, --genome <FILE|LIST>              Single genome fasta-file or a many lines ".txt"-file in style of: name=path/to/genome
         Optional
         -c, --coverage_filer <INT>            Minimal aligned length of a Blast query to the target genome in % (used to filter Blast hits)
@@ -73,7 +73,7 @@ def format_genome_hash(argument):
 
 def check_arguments(args):
     global coverage_min, out_dir, gene_ps_results, keep, verbose, genome, frag, quick
-    gene_ps_results = os.path.abspath(args['--GenePS_result_dir'])
+    gene_ps_results = os.path.abspath(args['--use_models_input'])
     keep = args['--keep']
     verbose = args['--verbose']
     frag = args['--frag']

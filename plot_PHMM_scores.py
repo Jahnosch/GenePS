@@ -2,25 +2,23 @@
 # plotting true negatives vs true positives
 
 """
-Usage: plotting_tn_tp.py                      -i <DIR> -o <DIR> [--membership]
+Usage: plot_PHMM_scores.py                      -i <DIR> -o <DIR> [--membership <FILE>]
 
     Options:
         -h, --help                            show this screen.
 
         General
-        -i, --input_dir <DIR>                 directory with TruePositive and corresponding True Negative Score files
+        -i, --input_dir <DIR>                 directory with intermediate files from build_models.py
         -o, --out_dir <DIR>                   output directory
-        --membership                          command to safe intermediate files
+        --membership <FILE>                   seeks and plots for corresponding orthofinder groups of next best BLAST proteins
 """
 
 import os
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
 from docopt import docopt
-import make_Datasets
-
-from run_command import run_cmd
+from build_models import find_density_intersection
+from shared_code_box import run_cmd, get_outdir
 
 import_errors = []
 try:
@@ -67,7 +65,6 @@ def extract_scores(score_dict, normalize=False):
         return score_list
 
 
-
 def analise_membership(score_hash):
     group_hash = {}
     for protein in score_hash:
@@ -80,59 +77,50 @@ def analise_membership(score_hash):
     return group_hash
 
 
-def tp_vs_tn_plot(tp_list, tn_list):
+def tp_vs_tn_plot(tp_list, tn_list, name):
     m_tp, std_tp = np.mean(tp_list), np.std(tp_list, ddof=1)
-    m_tn, std_tn = np.mean(tn_list), np.std(tn_list, ddof=1)
-    print(m_tp, m_tn, std_tp, std_tn)
-    intersection = make_Datasets.find_intersection(m_tp, m_tn, std_tp, std_tn)
-    if len(tn_list) >= 4:
+    if len(tn_list) >= 100000:
+        intersection = find_density_intersection(tp_list, tn_list)
         if intersection:
             single_inter = intersection
         else:
-            single_inter = min(tp_list)
+            single_inter = m_tp/2
+            median = np.median(tp_list)/2
     else:
-        single_inter = min(tp_list)
-    print(intersection, single_inter, min(tp_list), len(tn_list))
-    sns.distplot(tp_list, hist=False, rug=True, color="r", label="Scores within cluster")
-    sns.distplot(tn_list, hist=False, rug=True, color="b", label="Scores next best BLAST hits")
-    plt.axvline(x=single_inter, linewidth=2, color="k")
-    plt.title("HMM-Score Distributions", size=18, weight="bold")
-    plt.xlabel("Score", size=14)
+        single_inter = m_tp/2
+        median = np.median(tp_list)/2
+    intersection = find_density_intersection(tp_list, tn_list)
+    sns.distplot(tp_list, hist=False, rug=True, color="r", label="PHMM intracluster scores")
+    sns.distplot(tn_list, hist=False, rug=True, color="b", label="Next best BLAST PHMM scores")
+    #plt.axvline(x=single_inter, linewidth=1, color="k", linestyle="dotted", label="mean")
+    #plt.axvline(x=median, linewidth=1, color="k", linestyle="dashed", label="median")
+    #if intersection:
+    #    plt.axvline(x=intersection, linewidth=1, color="k", linestyle="solid", label="intersection point")
+    plt.title("PHMM-Score Distribution: {}".format(name), size=16, weight="bold")
+    plt.xlabel("PHMM scores", size=14)
     plt.ylabel("Density", size=14)
     plt.savefig(out_name)
     plt.close()
 
 
-def plot_summary(tp_list, tn_list):
-    sns.distplot(tp_list, hist=False, color="r")
-    sns.distplot(tn_list, hist=False, color="b")
-    plt.title("All HMM-Score Distributions", size=18, weight="bold")
-    plt.xlabel("Score", size=14)
-    plt.ylabel("Density", size=14)
-    plt.savefig(summary_plot)
-
-
-def plot_tn_group_belonging(true_negative_hash):
+def plot_tn_group_belonging(true_negative_hash, cluster_name):
     tn_memberships = analise_membership(true_negative_hash)
-
     name_list = []
     count_list = []
-    for name in tn_memberships:
-        name_list.append(name)
-        count_list.append(tn_memberships[name])
-
+    for name_x in tn_memberships:
+        name_list.append(name_x)
+        count_list.append(tn_memberships[name_x])
     ax = plt.subplot(111)
-
     width = 0.3
     bins = [x - (width/2) for x in range(1, len(name_list)+1)]
-
     ax.bar(bins, count_list, width=width)
     ax.set_xticks([x + (width/2) for x in range(1, len(name_list)+1)])
     ax.set_xticklabels(name_list, rotation=30, size=10, rotation_mode="anchor", ha="right", weight="bold")
-    plt.title("Next Best Blast Hits assigned to their Orthologous Groups", size=12, weight="bold")
+    plt.title("Orthologous Groups of next best BLAST proteins of {}".format(cluster_name), size=12, weight="bold")
     plt.ylabel("Group Size", size=14)
     plt.savefig(out_name)
     plt.close()
+    return tn_memberships
 
 
 def walk_and_hash_input(input_dir):
@@ -151,8 +139,6 @@ def walk_and_hash_input(input_dir):
             else:
                 print("path Error")
                 pass
-    if len(tn_pathes) != len(tp_pathes):
-        print("not as much TN files as TP files")
     return tn_pathes, tp_pathes
 
 
@@ -160,30 +146,37 @@ if __name__ == "__main__":
     __version__ = 0.1
     args = docopt(__doc__)
     input_dir = args['--input_dir']
-    output_dir = args['--out_dir']
-    membership = args['--membership']
-    ortho_group_file = "/home/jgravemeyer/Dropbox/MSc_project/data/orthologousGroups/OrthologousGroups_I3.5.txt"
+    output_dir = get_outdir(args['--out_dir'])
+    ortho_group_file = args['--membership']
 
     tn_files, tp_files = walk_and_hash_input(input_dir)
 
-    summary_plot = os.path.join(output_dir, "summary_TNvsTP.pdf")
+    summary_membership = {}
     for name in tn_files:
-        print(name)
-        out_name = os.path.join(output_dir, name + "_TNvsTP.pdf")
         tp_file = tp_files[name]
         tn_file = tn_files[name]
         tp_hash, tp_scores = hash_score_files(tp_file)
         tn_hash, tn_scores = hash_score_files(tn_file)
-
+        try:
+            name = name.split(".")[-1]
+            if "_" in name:
+                name = name.split("_")[1]
+        except Exception:
+            pass
+        out_name = os.path.join(output_dir, name + "_PHMMscores.pdf")
         if len(tn_scores) > 1 and len(tp_scores) > 1:
-            tp_vs_tn_plot(tp_scores, tn_scores)
-            #if len(tn_scores) > 15:
-            #    plot_summary(tp_scores, tn_scores)
-
-            if membership:
+            tp_vs_tn_plot(tp_scores, tn_scores, name)
+            if args["--membership"]:
                 out_name = os.path.join(output_dir, name + "_membership.pdf")
-                plot_tn_group_belonging(tn_hash)
+                summary_membership[name] = plot_tn_group_belonging(tn_hash, name)
+            print(name)
         else:
             print("{} not enough values to plot".format(name))
-
-
+    if args["--membership"]:
+        with open(os.path.join(output_dir,"NBB_membership_table.txt"), "w") as sum_f:
+            sum_f.write("### Summary of Orthofinder groups which had next best BLAST hits to another cluster\n### first column = group name\tsecond column = count\n\n")
+            for cluster_name, nbb_dict in summary_membership.items():
+                sum_f.write("#{}\n".format(cluster_name))
+                for group_name, count in nbb_dict.items():
+                    sum_f.write("{}\t{}\n".format(group_name, str(count)))
+                sum_f.write("\n")

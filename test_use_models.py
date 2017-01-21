@@ -3,7 +3,7 @@ import unittest
 import os
 from unittest.mock import patch
 from shared_code_box import tempdir
-import run_GenePS
+import use_models
 from collections import defaultdict, namedtuple
 from Blast_wrapper import read_blast_output, HspListObject
 from Exonerate_GenBlast_Wrapper import remove_non_letter_signs, clear_hashed_bases, aacode_3to1, ExonerateObject
@@ -163,19 +163,19 @@ class TestOverlapp(unittest.TestCase):
 
     @patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', return_value=True)
     def test_all_overlapp(self, overlapp):
-        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        filtered, passed = use_models.isolate_overlapping_predictions(self.make_pred_object_list())
         self.assertEqual(passed[0].score, 628)
         self.assertEqual(len(filtered), 6)
 
     @patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', return_value=False)
     def test_no_overlapp(self, overlapp):
-        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        filtered, passed = use_models.isolate_overlapping_predictions(self.make_pred_object_list())
         self.assertEqual(len(passed), 7)
         self.assertEqual(len(filtered), 0)
 
     #@patch('Exonerate_GenBlast_Wrapper.PredictionObject.check_overlap', autospec=True, side_effect=overlapp_side_effect)
     def test_crossoverlapping_correct_pick(self):
-        filtered, passed = run_GenePS.isolate_overlapping_predictions(self.make_pred_object_list())
+        filtered, passed = use_models.isolate_overlapping_predictions(self.make_pred_object_list())
         winner_scores = [628, 217, 44]
         for pred_obj in passed:
             self.assertIn(pred_obj.score, winner_scores)
@@ -199,7 +199,7 @@ class TestOverlapp(unittest.TestCase):
 
 class TestDataProviderObject(unittest.TestCase):
 
-    data_base = run_GenePS.DataProviderObject(test_data + "/run_geneps")
+    data_base = use_models.DataProviderObject(test_data + "/run_geneps")
 
     def test_all_attributes(self):
         self.assertEqual(self.data_base.cluster_scope, 5)

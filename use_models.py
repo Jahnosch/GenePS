@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Usage: run_GenePS.py                          -m <DIR> -g <FILE> [-c <INT>] [-o <DIR>] [--keep] [--verbose] [--frag] [--quick]
+Usage: use_models.py                          -m <DIR> -g <FILE> [-c <INT>] [-o <DIR>] [--keep] [--verbose] [--frag] [--quick]
 
     Options:
         -h, --help                            show this screen.

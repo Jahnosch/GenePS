@@ -412,8 +412,8 @@ class Overseer:
         for cluster in group_cluster_contig_prediction[group]:
             for contig in group_cluster_contig_prediction[group][cluster]:
                 for p_obj in group_cluster_contig_prediction[group][cluster][contig]:
-                    fasta_header = ">{} Cluster:{} Location:{};{}-{} HMM_score:{} Strand:{}".format(
-                        genome_prefix, p_obj.cluster, contig, str(p_obj.gene_start), str(p_obj.gene_end), str(round(p_obj.score, 3)), p_obj.strand)
+                    fasta_header = ">{} geneID:{} Location:{};{}-{} HMM_score:{} Strand:{}".format(
+                        genome_prefix, p_obj.geneID, contig, str(p_obj.gene_start), str(p_obj.gene_end), str(round(p_obj.score, 3)), p_obj.strand)
                     protein_dna_gff_array[0].extend([fasta_header, p_obj.protein])
                     protein_dna_gff_array[1].extend([fasta_header, p_obj.DNA])
                     protein_dna_gff_array[2].append("\n".join(p_obj.gff))

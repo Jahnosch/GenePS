@@ -47,10 +47,10 @@ def hash_score_files(score_file):
         for line in sf:
             if not line.startswith("#"):
                 line = line.strip("\n").split("\t")
-                score_hash[line[0]] = round(float(line[1]),3)
+                score_hash[line[0]] = round(float(line[1]), 3)
     return score_hash, list(score_hash.values())
 
-
+'''
 def extract_scores(score_dict, normalize=False):
     score_list = []
     if not normalize:
@@ -63,6 +63,7 @@ def extract_scores(score_dict, normalize=False):
             score = float(score_dict[protein][0]) / float(score_dict[protein][1])
             score_list.append(score)
         return score_list
+'''
 
 
 def analise_membership(score_hash):
@@ -79,7 +80,7 @@ def analise_membership(score_hash):
 
 def tp_vs_tn_plot(tp_list, tn_list, name):
     m_tp, std_tp = np.mean(tp_list), np.std(tp_list, ddof=1)
-    if len(tn_list) >= 100000:
+    if len(tn_list) >= 10:
         intersection = find_density_intersection(tp_list, tn_list)
         if intersection:
             single_inter = intersection

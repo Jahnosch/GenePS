@@ -43,6 +43,7 @@ class PredictionObject:
         self.gene_length = None
         self.aln_score = None
         self.fragmented = None
+        self.geneID = None
 
     def infer_data_from_exonerate_obj(self, exonerate_obj, key_tuple):
         if type(exonerate_obj) == ExonerateObject:
@@ -54,6 +55,7 @@ class PredictionObject:
             self.strand = self.gff[0].split("\t")[6]
             self.gene_start, self.gene_end = [int(x) for x in self.gff[0].split("\t")[3:5]]
             self.gene_length = abs(self.gene_end - self.gene_start)
+            self.geneID = self.gff[0].split("\t")[-1].split('''"''')[1]
         else:
             return None
 
@@ -158,24 +160,29 @@ def correct_gene_position(strand, blast_location, exonerate_location):
 def write_exonerate_gff(gff_list, off_set_tuple, strand):
     last_phase = 0
     new_gff_list = []
-    mrna_copy = None
+    cds_count = 1
+    gene_name, rna_name = "", ""
     for line in gff_list:
         line = line.split("\t")
         line[3], line[4] = correct_gene_position(line[6], off_set_tuple, (int(line[3]), int(line[4])))
         if "cds" in line[2]:
-            current_phase = (abs(int(line[4]) - int(line[3])) + 1 + last_phase) % 3 # current_phase = ((abs(int(line[4]) - int(line[3])) + 1) + last_phase) % 3
+            current_phase = (abs(int(line[4]) - int(line[3])) + 1 + last_phase) % 3
             line[7] = str(last_phase)
             if current_phase >= 3:
                 last_phase = 0
             else:
                 last_phase = current_phase
+            line[-1] = "{}; {}; exon_number '{}';".format(gene_name, rna_name, str(cds_count))
+            cds_count += 1
         elif "gene" in line[2]:
-            mrna_copy = line[:]
-            mrna_copy[2] = "mRNA"
-        elif "similarity" in line[2] or "splice" in line[2]:
+            name = line[-1].split(";")[1].split(" ")[2].strip() + "_{}".format(str(line[3]))
+            gene_name = "gene_id " + '''"{}"'''.format(name)
+            rna_name = "transcript_id " + '''"{}"'''.format(name + ".t")
+            line[2] = "transcript"
+            line[-1] = "{}; {};".format(gene_name, rna_name)
+        else:
             continue
         new_gff_list.append("\t".join(line))
-    new_gff_list.insert(1, "\t".join(mrna_copy))
     return new_gff_list
 
 
@@ -295,7 +302,7 @@ def best_exonerate_prediction2(region_fasta, query_fasta, dir_path, hmm):
                     max_val_fasta = "\n".join(["{}\n{}".format(header, fasta_hash[header]) for header in max_score_header])
                     write_to_tempfile(q_file.name, max_val_fasta)
                     ex_name = "{}.exon".format(q_file.name)
-                    ex_obj = run_exonerate("-m p2g -E yes ", ex_name, dir_path, region_fasta, q_file.name)
+                    ex_obj = run_exonerate("-m p2g -E no ", ex_name, dir_path, region_fasta, q_file.name)
                     return ex_obj
     return None
 
@@ -314,9 +321,14 @@ if __name__ == "__main__":
     #                  "/home/jgravemeyer/Dropbox/MSc_project/data/accuracy_ortho_group_files_5.0/F22D6.12_Inf5.0_OG0000412.fa")
         print("########################################################################################################################")
 
-    #    test2 = run_exonerate("-m p2g -E no", "F22test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data",
-    #                  "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data/F226Dparalog_T15D6.2_region.fa",
-    #                  "/home/jgravemeyer/programs/scipio-1.4/T15D6_F22paralog.fa")
+    test2 = run_exonerate("-m p2g -E yes", "F22test_exonerate.out", "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data",
+                  "/home/jgravemeyer/Dropbox/MSc_project/data/testing_GenePS/inf3.5/eef_data/F226Dparalog_T15D6.2_region.fa",
+                  "/home/jgravemeyer/programs/scipio-1.4/T15D6_F22paralog.fa")
+
+
+    for predtuple in test2.target_dna:
+        print("\n".join(write_exonerate_gff(test2.gff[predtuple], (100000,15000), "+")))
+
         '''
         ex_obj_f22 = best_exonerate_prediction2(f22_region, f22_protein_fasta, tmp_dir, hmm_f22)
         region_offset = {"all":[12373740, 12384000], "first": [12376000, 12378905], "second": [12378905, 12381250], "b0205": [10704500, 10715000]}
@@ -335,7 +347,7 @@ if __name__ == "__main__":
         print("finally")
         filtered, passed = isolate_overlapping_predictions(sorted(f22_pred_obj_list, key=lambda x: x.score, reverse=True))
         for valid in passed:
-            print(valid.gene_start, valid.gene_end, valid.cluster, valid.score, len(valid.protein), valid)
+            print(valid.gff)
 
 
         for headertuple in ex_obj_f22.target_dna:
@@ -349,7 +361,7 @@ if __name__ == "__main__":
             print(first_gene, "first gene")
             print(second_gene, "second gene")
         print("#"*30)
-        '''
+
 
         print("#"*30)
         ex_obj_b20 = best_exonerate_prediction2(b0205_region, b0205_protein, tmp_dir, hmm_b0205)
@@ -376,7 +388,7 @@ if __name__ == "__main__":
         for removed in filtered:
             print(removed.gene_start, removed.gene_end)
 
-        '''
+
         for headertuple in ex_obj_b20.target_dna:
             print(headertuple)
             offset = correct_gene_position("-", region_offset["W02D9"], [int(headertuple.trange[0]), int(headertuple.trange[1])])

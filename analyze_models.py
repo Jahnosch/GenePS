@@ -133,6 +133,8 @@ def walk_and_hash_input(input_dir):
             single_file = ".".join(single_file.strip().split(".")[0:-1]).split("_")
             file_belonging = single_file[-1]
             file_name = "_".join(single_file[:-1])
+            #file_belonging = file_path.split("_")[-1]
+            #file_name = single_file[-1]
             if file_belonging == "scores":
                 tp_pathes[file_name] = file_path
             elif file_belonging == "TrueNegativeScores":
